@@ -11,14 +11,17 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 
 class Configuration:
     def __init__(self):
-        self.capture_duration = 12
-        self.throughputs = [235, 375, 560, 750, 1050, 1750, 2350, 3000, 4300]
+        self.capture_duration = 120
+        # self.throughputs = [235, 375, 560, 750, 1050, 1750, 2350, 3000, 4300]
+        self.throughputs = [4300]
         self.wait_after_page_load = 60
         self.wait_after_throughput_adjustment = 60
 
 
 static_config = StaticConfig()
-video_ids = Inventory().full_capture()
+# video_ids = Inventory().full_capture()
+video_ids = ['70242311', '80244996']
+
 
 # define the ids we want to capture
 config = Configuration()
@@ -44,7 +47,7 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
     with NetflixBrowser() as browser:
 
         for video in video_ids:
-            video_id = video_ids[video]
+            video_id = video
 
             for throughput in config.throughputs:
 

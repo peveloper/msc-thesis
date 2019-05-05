@@ -1,9 +1,6 @@
 import psutil
 import subprocess
-import signal
 import time
-import fcntl
-import os
 
 from .nsbstreamreader import NonBlockingStreamReader as NBSR
 from .config import StaticConfig

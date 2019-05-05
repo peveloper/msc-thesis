@@ -1,5 +1,5 @@
 CORAL_DIR = /usr/local/Coral
-CORAL_LIBS = -lcoral  -lpcap -lstdc++
+CORAL_LIBS = -lcoral -lz -lpcap -lstdc++
 PCAP_PREFIX = /usr/local
 DIST_FILES = Makefile adudump.c lookup3.c adu2asc.c crunch-adus.sh filter-conns.pl locals.pl makecdf.pl per-server.pl
 
