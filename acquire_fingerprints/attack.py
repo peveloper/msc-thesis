@@ -87,4 +87,6 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
                     # wait for the capture to be finished
                     time.sleep(config.capture_duration)
 
+                exit(0)
+
 print("finished")

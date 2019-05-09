@@ -7,6 +7,8 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains 
 from typing import Optional
 
 from .config import StaticConfig
@@ -50,9 +52,8 @@ class NetflixBrowser:
         firefox_options = Options()
         firefox_options.headless = True
 
-        firefox_profile = webdriver.FirefoxProfile('/home/ubuntu/.mozilla/firefox/7wf97gjc.default')
-        firefox_profile.set_preference("browser.link.open_newwindow", 1)
-
+        firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
+        # firefox_profile.set_preference("browser.link.open_newwindow", 1)
 
         # construct chrome & request the test url
         self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
@@ -110,6 +111,52 @@ class NetflixBrowser:
     def navigate(self, netflix_id: int) -> bool:
         video_url = self.__get_video_url(netflix_id)
         self.__firefox.get(video_url)
+
+        if self.__try_find_element_by_class("nfp-fatal-error-view", 3) is not None:
+            print('error')
+            time.sleep(3)
+            self.__firefox.save_screenshot(config.error_dir + "/" + netflix_id + ".png")
+            title = self.__try_find_element_by_class("error-title", 3)
+            print("Netflix error occurred: " + title.text)
+            if title is not None:
+                if title.text == "Multiple Netflix Tabs":
+                    # this error is critical, netflix won't allow us to continue capturing
+                    # user may needs to reboot the computer for it to work again
+                    print("aborting; consider rebooting the computer for the error to go away")
+                    return False
+                if title.text == "Unexpected Error":
+                    # this error happens when javascript selects a profile unsupported by this video type
+                    # this happens often, and is no reason to stop capturing
+                    return True
+                print("halting; new error found!")
+                time.sleep(500000)
+            else:
+                # unknown error occurred; per default we continue
+                return True
+
+        actions = ActionChains(self.__firefox)
+
+        actions \
+            .key_down(Keys.CONTROL) \
+            .key_down(Keys.SHIFT) \
+            .key_down(Keys.ALT) \
+            .send_keys("d") \
+            .key_up(Keys.SHIFT) \
+            .key_up(Keys.ALT) \
+            .key_up(Keys.CONTROL) \
+            .perform()
+
+        # body = self__firefox.find_element_by_tag_name('body')
+        # body.send_keys(Keys.CONTROL + Keys.SHIFT + Keys.ALT + "d")
+
+        time.sleep(10)
+        # if body is not None:
+            # body.send_keys("v").submit()
+            # actions.sendKeys("r")
+            # actions.perform()
+            # print('HM2')
+        self.__firefox.save_screenshot('bitrate.png')
+             
         return True
 
     #TODO carefully check this method
