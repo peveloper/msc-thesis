@@ -3,7 +3,7 @@ import scrapy
 
 class netflixSpider(scrapy.Spider):
     name = 'netflix_spider'
-    start_urls = ['https://www.netflix.com/us-en/browse/genre/839338']
+    start_urls = ['https://www.netflix.com/us-en/browse/genre/34399?so=az']
     visitedLinks = start_urls
 
     def parse(self, response):

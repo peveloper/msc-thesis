@@ -19,7 +19,7 @@ class Configuration:
 
 static_config = StaticConfig()
 # video_ids = Inventory().full_capture()
-video_ids = ['80025172']
+video_ids = ['70060010']
 
 
 # define the ids we want to capture

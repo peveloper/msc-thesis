@@ -39,7 +39,7 @@ class NetflixBrowser:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # closes the chrome browser
-        self.__firefox.close()
+        # self.__firefox.close()
         self.__firefox.quit()
 
     def __try_create_firefox(self):
@@ -57,16 +57,24 @@ class NetflixBrowser:
         firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
         # firefox_profile = webdriver.FirefoxProfile()
         firefox_profile.set_preference("browser.link.open_newwindow", 1)
+
+        self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
+
+        # remember to include .xpi at the end of your file names 
+        extensions = [
+            '{7be2ba16-0f1e-4d93-9ebc-5164397477a9}.xpi',
+            '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
+        ]
+
+        for extension in extensions:
+            self.__firefox.install_addon(config.extensions_path + "/" + extension, temporary=True)
         # extension_path = '/home/ubuntu/extension/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
         
         # firefox_profile.add_extension(extension="/home/ubuntu/.mozilla/firefox/gexhyx73.default/extensions/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi")
 
 
         # construct chrome & request the test url
-        self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
         # self.__firefox.install_addon(extension_path, temporary=True)
-
-
 
         self.__firefox.get(video_url)
 
@@ -101,6 +109,8 @@ class NetflixBrowser:
             password_field.submit()
 
             WebDriverWait(self.__firefox, 5).until(EC.url_changes(current_url))
+
+            self.__firefox.save_screenshot('profile.png')
 
             print("https://www.netflix.com/SwitchProfile?tkn="+ self.__credentials["netflix"]["profile"])
 
@@ -152,21 +162,24 @@ class NetflixBrowser:
 
         print('page loaded ..')
 
-
         actions = ActionChains(self.__firefox)
+
+        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
+
+        print('starting playback')
+
         #start video playback
-        actions.click().perform()
+
+        # actions.click().perform()
 
         #skip 20 seconds
-        # for i in range(0, 2):
-            # actions.send_keys(Keys.RIGHT).perform()
+        for i in range(0, 2):
+            actions.send_keys(Keys.RIGHT).perform()
 
         # print('seeked %d seconds' % ((i + 1) * 10))
 
-        #enable fast capture
-        # actions.send_keys("r").perform()
-
         actions \
+            .key_down("r") \
             .key_down(Keys.CONTROL) \
             .key_down(Keys.SHIFT) \
             .key_down(Keys.ALT) \
@@ -176,10 +189,7 @@ class NetflixBrowser:
             .key_up(Keys.CONTROL) \
             .perform()
 
-
         time.sleep(30)
-
-        # print('starting playback')
 
         # actions \
             # .key_down(Keys.CONTROL) \

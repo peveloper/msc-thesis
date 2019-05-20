@@ -25,13 +25,14 @@ class StaticConfig:
         self.error_dir = self.root_dir + "/" + "error"
         self.screenshots_dir = self.root_dir + "/" + "screenshots"
 
-        self.firefox_profile = "/home/ubuntu/.mozilla/firefox/gexhyx73.default"
-        self.netflix_extension_path = self.root_dir + "/" + "tools/netflix-1080p.crx"
+        # self.firefox_profile = "/home/peveloper/.mozilla/firefox/gexhyx73.default"
+        self.firefox_profile = "/home/ubuntu/.mozilla/firefox/dvlmjl9a.test"
+        self.extensions_path = self.root_dir + "/" + "tools"
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"
 
-        self.local_ip = "172.31.21.190/20"
-        self.network_device = "eth0"
+        self.local_ip = "172.18.0.1/16"
+        self.network_device = "enp3s0"
 
 
 class Inventory:
