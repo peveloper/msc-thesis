@@ -39,6 +39,7 @@ class NetflixBrowser:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # closes the chrome browser
+        self.__firefox.close()
         self.__firefox.quit()
 
     def __try_create_firefox(self):
@@ -51,21 +52,28 @@ class NetflixBrowser:
 
         firefox_options = Options()
         firefox_options.headless = True
+        # firefox_options.log.level = "trace"
 
         firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
-        # firefox_profile.set_preference("browser.link.open_newwindow", 1)
+        # firefox_profile = webdriver.FirefoxProfile()
+        firefox_profile.set_preference("browser.link.open_newwindow", 1)
+        # extension_path = '/home/ubuntu/extension/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
+        
+        # firefox_profile.add_extension(extension="/home/ubuntu/.mozilla/firefox/gexhyx73.default/extensions/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi")
+
 
         # construct chrome & request the test url
         self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
+        # self.__firefox.install_addon(extension_path, temporary=True)
+
+
+
         self.__firefox.get(video_url)
 
         # if cookies set, add them to the browser
         if self.__cookies is not None:
             for cookie in self.__cookies:
                 self.__firefox.add_cookie(cookie)
-
-        # request video URL again to check if we are logged in
-        self.__firefox.get(video_url)
 
         # check for the login button
         login_link = self.__try_find_element_by_class("authLinks", 2)
@@ -76,6 +84,8 @@ class NetflixBrowser:
             print(link)
             self.__firefox.get(link)
 
+            time.sleep(3)
+
             # get username & password field
             username_field = self.__try_find_element_by_id("id_userLoginId")
             password_field = self.__try_find_element_by_id("id_password")
@@ -85,6 +95,7 @@ class NetflixBrowser:
             password_field.send_keys(self.__credentials["netflix"]["password"])
 
             current_url = self.__firefox.current_url
+        # self.throughputs = [50000]
 
             # submit the form
             password_field.submit()
@@ -108,15 +119,16 @@ class NetflixBrowser:
 
         return url
 
-    def navigate(self, netflix_id: int) -> bool:
+    def navigate(self, netflix_id: int, rate: int) -> bool:
         video_url = self.__get_video_url(netflix_id)
+
+        current_url = self.__firefox.current_url
+
         self.__firefox.get(video_url)
 
         if self.__try_find_element_by_class("nfp-fatal-error-view", 3) is not None:
-            print('error')
-            time.sleep(3)
-            self.__firefox.save_screenshot(config.error_dir + "/" + netflix_id + ".png")
             title = self.__try_find_element_by_class("error-title", 3)
+            self.__firefox.save_screenshot('error.png')
             print("Netflix error occurred: " + title.text)
             if title is not None:
                 if title.text == "Multiple Netflix Tabs":
@@ -127,14 +139,32 @@ class NetflixBrowser:
                 if title.text == "Unexpected Error":
                     # this error happens when javascript selects a profile unsupported by this video type
                     # this happens often, and is no reason to stop capturing
-                    return True
+                    return False
+                if title.text == "Streaming Error":
+                    return False
                 print("halting; new error found!")
-                time.sleep(500000)
+                time.sleep(86400)
             else:
                 # unknown error occurred; per default we continue
                 return True
 
+        WebDriverWait(self.__firefox, 5).until(EC.url_changes(current_url))
+
+        print('page loaded ..')
+
+
         actions = ActionChains(self.__firefox)
+        #start video playback
+        actions.click().perform()
+
+        #skip 20 seconds
+        # for i in range(0, 2):
+            # actions.send_keys(Keys.RIGHT).perform()
+
+        # print('seeked %d seconds' % ((i + 1) * 10))
+
+        #enable fast capture
+        # actions.send_keys("r").perform()
 
         actions \
             .key_down(Keys.CONTROL) \
@@ -146,68 +176,24 @@ class NetflixBrowser:
             .key_up(Keys.CONTROL) \
             .perform()
 
-        # body = self__firefox.find_element_by_tag_name('body')
-        # body.send_keys(Keys.CONTROL + Keys.SHIFT + Keys.ALT + "d")
 
-        time.sleep(10)
-        # if body is not None:
-            # body.send_keys("v").submit()
-            # actions.sendKeys("r")
-            # actions.perform()
-            # print('HM2')
-        self.__firefox.save_screenshot('bitrate.png')
-             
-        return True
+        time.sleep(30)
 
-    #TODO carefully check this method
-    def play_in_browser(self, netflix_id: int, rate: int) -> bool:
-        """
-        opens the netflix video and gets the javascript to limit the profiles according to the rate
-        then plays the video, speeding up according to the config
-        it will return False if you can not continue to use this instance as a capture
-        (happen when "Multiple Netflix Tabs" error pops up)
+        # print('starting playback')
 
-        :param netflix_id: the video id
-        :param rate: the amount it should be
-        :return: False if you cannot continue capture, else True
-        """
-        # construct url by appending the configured rate
-        # javascript will then read out, and limit the netflix video to this default
-        video_url = self.__get_video_url(netflix_id, rate)
+        # actions \
+            # .key_down(Keys.CONTROL) \
+            # .key_down(Keys.SHIFT) \
+            # .key_down(Keys.ALT) \
+            # .send_keys("d") \
+            # .key_up(Keys.SHIFT) \
+            # .key_up(Keys.ALT) \
+            # .key_up(Keys.CONTROL) \
+            # .perform()
 
-        # load page & let video player initialize
-        self.__firefox.get(video_url)
-        time.sleep(5)
-
-        # check for fatal error 3 times
-        if self.__try_find_element_by_class("nfp-fatal-error-view", 3) is not None:
-            title = self.__try_find_element_by_class("error-title", 3)
-            print("Netflix error occurred: " + title.text)
-            if title is not None:
-                if title.text == "Multiple Netflix Tabs":
-                    # this error is critical, netflix won't allow us to continue capturing
-                    # user may needs to reboot the computer for it to work again
-                    print("aborting; consider rebooting the computer for the error to go away")
-                    return False
-                if title.text == "Unexpected Error":
-                    # this error happens when javascript selects a profile unsupported by this video type
-                    # this happens often, and is no reason to stop capturing
-                    return True
-                print("halting; new error found!")
-                time.sleep(500000)
-            else:
-                # unknown error occurred; per default we continue
-                return True
-
-        # start playback speedup from netflix extension
-        self.__firefox.execute_script("startFasterPlayback(10, " + str(config.skip_seconds) + ")")
-        i = 200
-        while i > 0:
-            if not self.__firefox.execute_script("return stillActive()"):
-                break
-
-            time.sleep(config.wait_seconds)
-            i -= 1
+        # time.sleep(120)
+        # print(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + ".png")
+        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + ".png")
 
         return True
 

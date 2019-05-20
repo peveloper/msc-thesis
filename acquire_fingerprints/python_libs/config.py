@@ -23,8 +23,10 @@ class StaticConfig:
         self.plot_dir = self.root_dir + "/" + "plot"
         self.log_dir = self.root_dir + "/" + "log"
         self.error_dir = self.root_dir + "/" + "error"
+        self.screenshots_dir = self.root_dir + "/" + "screenshots"
 
         self.firefox_profile = "/home/ubuntu/.mozilla/firefox/gexhyx73.default"
+        self.netflix_extension_path = self.root_dir + "/" + "tools/netflix-1080p.crx"
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"
 

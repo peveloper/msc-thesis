@@ -11,16 +11,15 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 
 class Configuration:
     def __init__(self):
-        self.capture_duration = 120
-        # self.throughputs = [235, 375, 560, 750, 1050, 1750, 2350, 3000, 4300]
-        self.throughputs = [4300]
+        self.capture_duration = 70 
+        self.throughputs = [50000]
         self.wait_after_page_load = 60
         self.wait_after_throughput_adjustment = 60
 
 
 static_config = StaticConfig()
 # video_ids = Inventory().full_capture()
-video_ids = ['70242311', '80244996']
+video_ids = ['80025172']
 
 
 # define the ids we want to capture
@@ -64,9 +63,8 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
 
                 # create the filename
                 filename = str(video_id) + '_'
-                filename += str(throughput) + "_ "
-                filename += datetime.datetime.now().isoformat().replace(":", "_")
-                filename += "_" + str(static_config.attack_version)
+                filename += str(throughput) + '_'
+                filename += str(datetime.datetime.now().isoformat().replace(":", "_")).strip()
 
                 # initialize the adudump capture
                 with AdudumpCapture(local_ip, interface, filename) as capture:
@@ -77,16 +75,10 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
                     )
 
                     # navigate to video
-                    if not browser.navigate(video_id):
+                    if not browser.navigate(video_id, throughput):
                         print("could not navigate to video")
                         continue
 
-                    # let netflix adjust after page load
-                    time.sleep(config.wait_after_page_load)
 
-                    # wait for the capture to be finished
-                    time.sleep(config.capture_duration)
-
-                exit(0)
 
 print("finished")

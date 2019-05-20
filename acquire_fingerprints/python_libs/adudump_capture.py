@@ -15,6 +15,7 @@ class AdudumpCapture:
     __interface = None
 
     def __init__(self, local_ip, interface, filename):
+        print(filename)
         self.__local_ip = local_ip
         self.__interface = interface
         self.__log_file = open(
@@ -46,7 +47,7 @@ class AdudumpCapture:
 
         # start executable, and save logfile to
         self.__process = subprocess.Popen(
-            static_config.adudump_dir + "/adudump -l " + self.__local_ip +
+            "sudo " + static_config.adudump_dir + "/adudump -l " + self.__local_ip +
             " if:" + self.__interface,
             shell=True, universal_newlines=True, stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
