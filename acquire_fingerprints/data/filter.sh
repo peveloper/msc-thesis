@@ -7,6 +7,7 @@
 #- Add information on processing
 #- Adjust legends in the plots
 
+mkdir plots
 
 plot_string=""
 c=0
@@ -20,8 +21,6 @@ for file in ../log/*; do
 
     ((c++))
 
-    echo $filename
-
     if (( $c > 1 ))
     then
         plot_string="${plot_string} ${filename}"
@@ -31,7 +30,6 @@ for file in ../log/*; do
 done
 
 for record in *.dat; do
-    echo $record
 
     if [ $record = "db.dat" ]
     then
