@@ -173,11 +173,12 @@ class NetflixBrowser:
         # actions.click().perform()
 
         #skip 20 seconds
-        for i in range(0, 2):
-            actions.send_keys(Keys.RIGHT).perform()
+        # for i in range(0, 2):
+            # actions.send_keys(Keys.RIGHT).perform()
 
         # print('seeked %d seconds' % ((i + 1) * 10))
 
+            # .key_down("r") \
         actions \
             .key_down("r") \
             .key_down(Keys.CONTROL) \

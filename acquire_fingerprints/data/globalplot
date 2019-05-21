@@ -1,0 +1,8 @@
+plot_dir = "plots/"
+filename = "db"
+set xlabel "Playing time (s)"
+set ylabel "Size of ADUs (bytes)"
+set title "Fingerprints Database"
+set term png
+set output sprintf("%s%s.png", plot_dir, filename)
+plot for [file in files] file.'.dat' with lines title substr(file, 0, strstrt(file, "_"))

@@ -19,7 +19,7 @@ class Configuration:
 
 static_config = StaticConfig()
 # video_ids = Inventory().full_capture()
-video_ids = ['70060010']
+video_ids = ['70060010', '80991404']
 
 
 # define the ids we want to capture
@@ -78,6 +78,9 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
                     if not browser.navigate(video_id, throughput):
                         print("could not navigate to video")
                         continue
+
+                    # waiting to dump
+                    time.sleep(30)
 
 
 

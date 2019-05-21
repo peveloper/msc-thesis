@@ -1,0 +1,9 @@
+plot_dir = "plots/"
+filename = substr(file, 0, strstrt(file, ".") - 1)
+set xlabel "Playing time (s)"
+set ylabel "Size of ADUs (bytes)"
+set title sprintf("Fingerprint ID: %s", substr(file, 0, strstrt(file, "_")))
+set term png
+print file
+set output sprintf("%s%s.png", plot_dir, filename)
+plot file with lines
