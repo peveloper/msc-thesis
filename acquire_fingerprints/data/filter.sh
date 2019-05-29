@@ -1,7 +1,6 @@
 #!/bin/bash
 
 
-
 #TODO
 
 #- Add information on processing

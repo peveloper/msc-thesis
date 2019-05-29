@@ -80,7 +80,7 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
                         continue
 
                     # waiting to dump
-                    time.sleep(30)
+                    # time.sleep(30)
 
 
 
