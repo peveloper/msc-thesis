@@ -162,23 +162,45 @@ class NetflixBrowser:
 
         print('page loaded ..')
 
+
         actions = ActionChains(self.__firefox)
 
         self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
 
-        print('starting playback')
+        spinner = self.__try_find_element_by_class("nf-loading-spinner")
 
-        #start video playback
+        WebDriverWait(self.__firefox, 60).until(EC.invisibility_of_element_located(spinner))
 
-        # actions.click().perform()
+        for i in range(0, 3):
+            actions.send_keys(Keys.LEFT).perform()
 
-        #skip 20 seconds
-        # for i in range(0, 2):
-            # actions.send_keys(Keys.RIGHT).perform()
+        actions.send_keys(Keys.SPACE).perform()
+
+        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_2.png")
+
+        controller = self.__try_find_element_by_class("scrubber-head") 
+
+        duration = controller.get_attribute("aria-valuemax")
+        pos = controller.get_attribute("aria-valuenow")
+
+        print('%s of %s' % (pos, duration))
+
+        #skip 100 seconds
+        for i in range(0, 10):
+            actions.send_keys(Keys.RIGHT).perform()
+            time.sleep(1)
 
         # print('seeked %d seconds' % ((i + 1) * 10))
 
-            # .key_down("r") \
+        
+        duration = controller.get_attribute("aria-valuemax")
+        pos = controller.get_attribute("aria-valuenow")
+
+        print('%s of %s' % (pos, duration))
+
+        # controller = self.__try_find_element_by_class("scrubber-head") 
+
+
         actions \
             .key_down("r") \
             .key_down(Keys.CONTROL) \
@@ -190,7 +212,11 @@ class NetflixBrowser:
             .key_up(Keys.CONTROL) \
             .perform()
 
-        time.sleep(30)
+        spinner = self.__try_find_element_by_class("nf-loading-spinner")
+        print(spinner.is_displayed())
+
+        WebDriverWait(self.__firefox, 60).until(EC.invisibility_of_element_located(spinner))
+        
 
         # actions \
             # .key_down(Keys.CONTROL) \

@@ -12,14 +12,14 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 class Configuration:
     def __init__(self):
         self.capture_duration = 70 
-        self.throughputs = [50000]
+        self.throughputs = [1000]
         self.wait_after_page_load = 60
         self.wait_after_throughput_adjustment = 60
 
 
 static_config = StaticConfig()
 # video_ids = Inventory().full_capture()
-video_ids = ['70060010', '80991404']
+video_ids = ['80999729']
 
 
 # define the ids we want to capture
