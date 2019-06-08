@@ -14,7 +14,7 @@ c=0
 for file in ../log/*; do
     filename="${file##*/}"
 
-    awk '/^ADU/ {if(c++>0 && $4=="<1" && $6>200000){time_diff=$2-_n; cum_time+=time_diff; printf("%.7f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
+    awk '/^ADU/ {if(c++>0 && $4=="<1" && $6>1000){time_diff=$2-_n; cum_time+=time_diff; printf("%.7f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
 
     gnuplot -e "file='${filename}.dat'" singleplot
 

@@ -12,7 +12,7 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 class Configuration:
     def __init__(self):
         self.capture_duration = 70 
-        self.throughputs = [1000]
+        self.throughputs = [500, 1000, 2000, 5000, 10000, 50000]
         self.wait_after_page_load = 60
         self.wait_after_throughput_adjustment = 60
 
@@ -80,7 +80,7 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
                         continue
 
                     # waiting to dump
-                    # time.sleep(30)
+                    time.sleep(180)
 
 
 
