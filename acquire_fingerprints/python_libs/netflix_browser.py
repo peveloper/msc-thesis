@@ -24,7 +24,7 @@ class NetflixBrowser:
     __credentials = None
     __cookies = None
     __chrome = None
-    __first = False
+    __started = False
 
     def __enter__(self):
         # resolve credentials if possible
@@ -134,16 +134,12 @@ class NetflixBrowser:
 
     def navigate(self, netflix_id: int, rate: int) -> bool:
         video_url = self.__get_video_url(netflix_id)
-
         current_url = self.__firefox.current_url
-
-        
 
         print(current_url)
 
         self.__firefox.get(video_url)
         print(self.__firefox.current_url)
-
 
         self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
 
@@ -151,7 +147,6 @@ class NetflixBrowser:
             WebDriverWait(self.__firefox, 60).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
         except TimeoutException:
             print('TIMEOUT')
-
 
         if self.__try_find_element_by_class("nfp-fatal-error-view", 3) is not None:
             title = self.__try_find_element_by_class("error-title", 3)
@@ -178,15 +173,12 @@ class NetflixBrowser:
 
         print('page loaded ..')
         
-
         actions = ActionChains(self.__firefox)
-
 
         try:
             WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
         except TimeoutException:
             print('timeout')
-            return False
 
         print('spinning ..')
         self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
@@ -198,8 +190,20 @@ class NetflixBrowser:
 
         print('ready')
 
-        for i in range(0, 30):
+        for i in range(0, 100):
             actions.send_keys(Keys.LEFT).perform()
+
+        try:
+            WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
+        except TimeoutException:
+            print('timeout')
+
+        print('spinning ..')
+
+        try:
+            WebDriverWait(self.__firefox, 60).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
+        except TimeoutException:
+            print('timeout')
 
         self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_2.png")
 
@@ -210,77 +214,49 @@ class NetflixBrowser:
 
         #skip first 300 seconds
         for i in range(0, 30):
-            actions.send_keys(Keys.RIGHT).perform()
-
-        actions.send_keys(Keys.SPACE).perform()
-
-        # spinner = self.__try_find_element_by_class("nf-loading-spinner")
-        try:
-            WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-            return False
-
-        print('spinning ..')
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
-
-        try:
-            WebDriverWait(self.__firefox, 180).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        print('ready')
-
-
-        if self.__first == False:
-            actions.key_down("r").perform()
-            self.__first = True
+            actions.send_keys(Keys.RIGHT)
+        actions.perform()
 
         actions \
-            .key_down(Keys.CONTROL) \
-            .key_down(Keys.SHIFT) \
-            .key_down(Keys.ALT) \
-            .send_keys("d") \
-            .key_up(Keys.SHIFT) \
-            .key_up(Keys.ALT) \
-            .key_up(Keys.CONTROL) \
+            .key_down("r") \
             .perform()
+            # .key_down(Keys.CONTROL) \
+            # .key_down(Keys.SHIFT) \
+            # .key_down(Keys.ALT) \
+            # .send_keys("d") \
+            # .key_up(Keys.SHIFT) \
+            # .key_up(Keys.ALT) \
+            # .key_up(Keys.CONTROL) \
 
-        # duration = controller.get_attribute("aria-valuemax")
-        # pos = controller.get_attribute("aria-valuenow")
+        actions.send_keys(Keys.SPACE).perform()
+        
+        start_time = time.time()
+        spinner = self.__try_find_element_by_class("nf-loading-spinner")
 
-        # print('%s of %s' % (pos, duration))
+        if spinner.is_displayed():
+            sleep_time = 0
 
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_3.png")
+            try:
+                WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
+                self.__started = False
+            except TimeoutException:
+                print('timeout')
 
-        #let the spinner appear
-        # time.sleep(10)
+            print('spinning ..')
 
-        try:
-            WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-            return False
+            try:
+                WebDriverWait(self.__firefox, 360).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
+            except TimeoutException:
+                print('timeout')
 
-        print('spinning ..')
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
+            print('ready')
+        else:
+            sleep_time = time.time() - start_time
+            print('no spinner')
 
-        try:
-            WebDriverWait(self.__firefox, 180).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        print('ready')
-
-            # try:
-                # while spinner.is_displayed():
-                    # print('spinning ...')
-            # except StaleElementReferenceException:
-                # print('Spinner gone')
-
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_4.png")
-        time.sleep(67)
-
+        
+        time.sleep(120 / 1.8 - sleep_time)
+        actions.key_down(Keys.SPACE).perform()
         self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + ".png")
 
         return True

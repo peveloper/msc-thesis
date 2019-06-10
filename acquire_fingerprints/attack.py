@@ -12,14 +12,14 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 class Configuration:
     def __init__(self):
         self.capture_duration = 70 
-        self.throughputs = [500, 1000, 2000, 5000, 10000, 50000]
+        self.throughputs = [20000, 50000]
         self.wait_after_page_load = 60
         self.wait_after_throughput_adjustment = 60
 
 
 static_config = StaticConfig()
 # video_ids = Inventory().full_capture()
-video_ids = ['80999729']
+video_ids = ['60027713']
 
 
 # define the ids we want to capture
@@ -63,8 +63,7 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
 
                 # create the filename
                 filename = str(video_id) + '_'
-                filename += str(throughput) + '_'
-                filename += str(datetime.datetime.now().isoformat().replace(":", "_")).strip()
+                filename += str(throughput)
 
                 # initialize the adudump capture
                 with AdudumpCapture(local_ip, interface, filename) as capture:
@@ -80,7 +79,7 @@ with BandwidthManipulator(interface, "incoming") as bandwidth:
                         continue
 
                     # waiting to dump
-                    time.sleep(180)
+                    # time.sleep(180)
 
 
 

@@ -8,23 +8,30 @@
 
 mkdir plots
 
-plot_string=""
+global=""
 c=0
+
+read_elapsed_time () {
+    awk '/^ADU/ {if(c++==0) {d1=$1}} END{printf("%.2f%s\t", $1-d1, " secs")}' $1
+}
 
 for file in ../log/*; do
     filename="${file##*/}"
 
-    awk '/^ADU/ {if(c++>0 && $4=="<1" && $6>1000){time_diff=$2-_n; cum_time+=time_diff; printf("%.7f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
+    #awk '/^ADU/ {if(c++>0 && $4=="<1" && $6>20000){time_diff=$2-_n; cum_time+=time_diff; printf("%.7f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
 
-    gnuplot -e "file='${filename}.dat'" singleplot
+    #read_elapsed_time $filename.dat
+
+    #gnuplot -e "file='${filename}.dat'" singleplot
 
     ((c++))
 
+
     if (( $c > 1 ))
     then
-        plot_string="${plot_string} ${filename}"
+        global="${global} ${filename}"
     else
-        plot_string="${filename}"
+        global="${filename}"
     fi
 done
 
@@ -34,8 +41,16 @@ for record in *.dat; do
     then
         break
     fi
-    cat $record >> db.dat
-    echo '\n ------------------------ \n' >> db.dat
+
+    filename="${record##*/}"
+    echo $filename
+
+    id=$(echo $filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
+    tp=$(echo $filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $2}')
+
+    echo $id $tp "\n" $record >> db.dat
+    #cat $record >> db.dat
+    #echo '\n ------------------------ \n' >> db.dat
 done
 
-gnuplot -e "files='${plot_string}'" globalplot
+#gnuplot -e "files='${global}'" globalplot
