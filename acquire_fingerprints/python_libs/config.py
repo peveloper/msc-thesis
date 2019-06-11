@@ -25,15 +25,15 @@ class StaticConfig:
         self.error_dir = self.root_dir + "/" + "error"
         self.screenshots_dir = self.root_dir + "/" + "screenshots"
 
-        self.firefox_profile = "/home/ubuntu/.mozilla/firefox/t22whui4.test"
+        self.firefox_profile = "/home/peveloper/.mozilla/firefox/jjheiiwy.test"
         self.extensions_path = self.root_dir + "/" + "tools"
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"
 
         self.speedup = 1.8
 
-        self.local_ip = "172.31.21.190/20"
-        self.network_device = "eth0"
+        self.local_ip = "192.168.0.157/24"
+        self.network_device = "enp3s0"
 
 
 class Inventory:
