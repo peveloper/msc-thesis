@@ -13,9 +13,9 @@ read_elapsed_time () {
 
 for file in ../log/*; do
     filename="${file##*/}"
-    #awk '/^ADU/ {if(c++>0 && $4=="<1" && $6>200000){time_diff=$2-_n; cum_time+=time_diff; printf("%.7f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
+    awk '/^ADU/ {if(c++>0 && $4=="<1" && $6>2000){time_diff=$2-_n; cum_time+=time_diff; printf("%.7f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
     #read_elapsed_time $filename.dat
-    #gnuplot -e "file='${filename}.dat'" singleplot
+    gnuplot -e "file='${filename}.dat'" singleplot
     ((c++))
 
     if (( $c > 1 ))
