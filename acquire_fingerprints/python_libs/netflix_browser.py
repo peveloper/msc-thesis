@@ -255,7 +255,7 @@ class NetflixBrowser:
             print('no spinner')
 
         
-        time.sleep(120 / 1.8 - sleep_time)
+        time.sleep(120 / config.speedup - sleep_time)
         actions.key_down(Keys.SPACE).perform()
         self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + ".png")
 
