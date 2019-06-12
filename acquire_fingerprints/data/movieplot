@@ -1,0 +1,10 @@
+plot_dir = "plots/"
+filename = substr(files, 0, strstrt(files, "_") - 1)
+set xlabel "Playing time (s)"
+set ylabel "Size of ADUs (bytes)"
+set title sprintf("Fingerprints at various throughputs of ID: %s", filename)
+set term png
+set key outside
+set key right top
+set output sprintf("%s%s.png", plot_dir, filename)
+plot for [file in files] file with lines title file[strstrt(file, "_") + 1:strstrt(file, ".") - 1].' kbps'

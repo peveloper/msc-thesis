@@ -1,8 +1,11 @@
 plot_dir = "plots/"
-filename = substr(file, 0, strstrt(file, "_") - 1)
-set xlabel "Bitrate (bytes/s)"
-set ylabel "Throughputs"
+filename = substr(file, 0, strstrt(file, ".dat") - 1)
+set xlabel "Enforced Throughputs"
+set ylabel "Bitrate (bits/s)"
 set title sprintf("Bitrate Ladder ID: %s", filename)
 set term png
-set output sprintf("%s%s.png", plot_dir, filename)
-plot for [file in files] file.'.dat.bl' with lines title file[strstrt(file, "_") + 1:strlen(file)]
+set autoscale
+set style arrow 1 nohead
+set output sprintf("%s%s_ladder.png", plot_dir, filename)
+set format x "1%s %c"
+plot file using 1:2:xtic(1) w steps title filename

@@ -4,5 +4,7 @@ set xlabel "Playing time (s)"
 set ylabel "Size of ADUs (bytes)"
 set title "Fingerprints Database"
 set term png
+set key outside
+set key right top
 set output sprintf("%s%s.png", plot_dir, filename)
 plot for [file in files] file.'.dat' with lines title file[1:strstrt(file, "_") - 1]."-".file[strstrt(file, "_") + 1:strlen(file)]
