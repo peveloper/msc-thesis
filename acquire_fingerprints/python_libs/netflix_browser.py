@@ -24,7 +24,9 @@ class NetflixBrowser:
     __credentials = None
     __cookies = None
     __chrome = None
-    __started = False
+    # Change this parameter if autoplay is not set
+    __is_playing = True
+    __is_page_loaded = False
 
     def __enter__(self):
         # resolve credentials if possible
@@ -141,8 +143,6 @@ class NetflixBrowser:
         self.__firefox.get(video_url)
         print(self.__firefox.current_url)
 
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
-
         try:
             WebDriverWait(self.__firefox, 60).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
         except TimeoutException:
@@ -171,95 +171,104 @@ class NetflixBrowser:
                 return True
 
 
-        print('page loaded ..')
-        
-        actions = ActionChains(self.__firefox)
+        while not self.__is_page_loaded:
+            self.__is_page_loaded = self.__get_page_status()
 
-        try:
-            WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        print('spinning ..')
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
-
-        try:
-            WebDriverWait(self.__firefox, 60).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        print('ready')
-
-        for i in range(0, 100):
-            actions.send_keys(Keys.LEFT).perform()
-
-        try:
-            WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        print('spinning ..')
-
-        try:
-            WebDriverWait(self.__firefox, 60).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_2.png")
-
-        print('OK')
-
-        # pos = controller.get_attribute("aria-valuenow")
-        print('NOT')
-
-        #skip first 300 seconds
-        for i in range(0, 30):
-            actions.send_keys(Keys.RIGHT)
-        actions.perform()
-
-        actions \
-            .key_down("r") \
-            .perform()
-            # .key_down(Keys.CONTROL) \
-            # .key_down(Keys.SHIFT) \
-            # .key_down(Keys.ALT) \
-            # .send_keys("d") \
-            # .key_up(Keys.SHIFT) \
-            # .key_up(Keys.ALT) \
-            # .key_up(Keys.CONTROL) \
-
-        actions.send_keys(Keys.SPACE).perform()
-        
-        start_time = time.time()
-        spinner = self.__try_find_element_by_class("nf-loading-spinner")
-
-        if spinner.is_displayed():
-            sleep_time = 0
-
-            try:
-                WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-                self.__started = False
-            except TimeoutException:
-                print('timeout')
-
-            print('spinning ..')
-
-            try:
-                WebDriverWait(self.__firefox, 360).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-            except TimeoutException:
-                print('timeout')
-
-            print('ready')
-        else:
-            sleep_time = time.time() - start_time
-            print('no spinner')
-
-        
-        time.sleep(120 / config.speedup - sleep_time)
-        actions.key_down(Keys.SPACE).perform()
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + ".png")
+        self.__rewind()
+        self.__wait_buffering()
+        self.__seek_video()
+        self.__wait_buffering()
+        # self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
+        time.sleep(120)
+        self.__toggle_video_playback(False)
+        print(self.__is_playing)
 
         return True
+
+    def __rewind(self) -> Optional[int]:
+        """
+        calls rewind.js that rewinds the video
+
+        :return the new current time in ms 
+        """
+
+        with open('seek_video.js', 'r') as file:
+            js_script = file.read()
+
+        return self.__firefox.execute_script(js_script)
+
+
+
+    def __wait_buffering(self):
+        """
+        calls player_state.js and waits for the buffering to be complete
+
+        """
+
+        with open('player_state.js', 'r') as file:
+            js_script = file.read()
+
+        while self.__firefox.execute_script(js_script) is not None:
+            print('...')
+            time.sleep(1)
+        print('\n')
+            
+        return
+
+
+    def __seek_video(self) -> Optional[int]:
+        """
+        calls seek_video.js that seeks the playback forward
+
+        :return the new current time in ms 
+        """
+
+        with open('seek_video.js', 'r') as file:
+            js_script = file.read()
+
+        return self.__firefox.execute_script(js_script)
+
+
+    def __toggle_video_playback(self, play: bool) -> Optional[bool]:
+        """
+        calls either play.js or pause.js 
+
+        :param play: True for play, False for pause
+        :return True if playing, False otherwise
+        """
+
+        if play:
+            filename = 'play_video.js'
+            print('Starting playback ...')
+        else:
+            filename = 'pause_video.js'
+            print('Pausing playback ...')
+
+        with open(filename, 'r') as file:
+            js_script = file.read()
+        self.__is_playing = self.__firefox.execute_script(js_script)
+
+        return self.__is_playing
+
+    def __get_page_status(self) -> Optional[bool]:
+        """
+        calls page_status.js that check if the player is loaded
+
+        :return True if the player is loaded, False otherwise
+        """
+
+        with open('page_status.js', 'r') as file:
+            js_script = file.read()
+
+        print('Loading Netflix video player ...')
+        while not self.__is_page_loaded:
+            # js boolean gets casted into python's bool
+            self.__is_page_loaded = self.__firefox.execute_script(js_script)
+            time.sleep(1)
+
+        print('Player is ready!')
+        return True
+
 
     def __try_find_element_by_id(self, css_id: str, retries: int = 5) -> Optional[WebElement]:
         """

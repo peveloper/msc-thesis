@@ -5,7 +5,7 @@ mkdir plots
 
 global=""
 c=0
-speedup=1.8
+speedup=1.0
 
 #read_elapsed_time () {
     #awk '/^ADU/ {if(c++==0) {d1=$1}} END{printf("%.2f%s\t", $1-d1, " secs")}' $1

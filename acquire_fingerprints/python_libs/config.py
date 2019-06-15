@@ -30,7 +30,7 @@ class StaticConfig:
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"
 
-        self.speedup = 1.8
+        self.speedup = 1.0
 
         self.local_ip = "192.168.0.157/24"
         self.network_device = "enp3s0"
