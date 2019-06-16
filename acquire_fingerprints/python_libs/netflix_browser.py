@@ -174,14 +174,16 @@ class NetflixBrowser:
         while not self.__is_page_loaded:
             self.__is_page_loaded = self.__get_page_status()
 
-        self.__rewind()
+        print(self.__rewind())
         self.__wait_buffering()
-        self.__seek_video()
+        print(self.__seek_video())
         self.__wait_buffering()
-        # self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
         time.sleep(120)
         self.__toggle_video_playback(False)
         print(self.__is_playing)
+
+        self.__is_page_loaded = False
+        self.__is_playing = True
 
         return True
 
@@ -192,7 +194,8 @@ class NetflixBrowser:
         :return the new current time in ms 
         """
 
-        with open('seek_video.js', 'r') as file:
+        print('Rewind ...')
+        with open('rewind.js', 'r') as file:
             js_script = file.read()
 
         return self.__firefox.execute_script(js_script)
@@ -208,6 +211,7 @@ class NetflixBrowser:
         with open('player_state.js', 'r') as file:
             js_script = file.read()
 
+        print('Buffering ...')
         while self.__firefox.execute_script(js_script) is not None:
             print('...')
             time.sleep(1)
@@ -223,6 +227,7 @@ class NetflixBrowser:
         :return the new current time in ms 
         """
 
+        print('Seeking ...')
         with open('seek_video.js', 'r') as file:
             js_script = file.read()
 

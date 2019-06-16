@@ -1,11 +1,15 @@
 plot_dir = "plots/"
 filename = substr(file, 0, strstrt(file, ".dat") - 1)
-set xlabel "Enforced Throughputs"
+set xlabel "Enforced Throughputs (bits/s)" offset -0.1,0,0
 set ylabel "Bitrate (bits/s)"
 set title sprintf("Bitrate Ladder ID: %s", filename)
 set term png
-set autoscale
-set style arrow 1 nohead
+set decimal locale
+set xtics nomirror out rotate by 90 offset 0,graph -0.06 scale 2
+set xtics font ", 8"
+set ytics font ", 10"
+unset key
+set grid
+set format y "%.2s%c"
 set output sprintf("%s%s_ladder.png", plot_dir, filename)
-set format x "1%s %c"
-plot file using 1:2:xtic(1) w steps title filename
+plot file using 1:2:xtic(sprintf('%.1fk', $1 / 1000)) w steps ls 2 title filename
