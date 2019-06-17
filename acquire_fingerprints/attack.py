@@ -12,7 +12,7 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 class Configuration:
     def __init__(self):
         self.capture_duration = 70 
-        self.throughputs = [1000, 2000, 3000, 5000, 7500, 10000, 20000, 50000]
+        self.throughputs = [50000]
         self.wait_after_page_load = 60
         self.wait_after_throughput_adjustment = 60
 
@@ -20,7 +20,6 @@ class Configuration:
 static_config = StaticConfig()
 # video_ids = Inventory().full_capture()
 video_ids = [
-        '60027713',
         '70305892',
         '80161055',
         '80215419',

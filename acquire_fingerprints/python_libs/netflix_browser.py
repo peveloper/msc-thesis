@@ -2,6 +2,7 @@ import pickle
 import os
 import json
 import time
+import psutil
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.remote.webelement import WebElement
@@ -11,6 +12,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains 
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from browsermobproxy import Server
 from typing import Optional
 
 from .config import StaticConfig
@@ -27,6 +30,7 @@ class NetflixBrowser:
     # Change this parameter if autoplay is not set
     __is_playing = True
     __is_page_loaded = False
+    __server = None
 
     def __enter__(self):
         # resolve credentials if possible
@@ -37,14 +41,19 @@ class NetflixBrowser:
         if os.path.isfile(config.cookie_file_path):
             self.__cookies = pickle.load(open(config.cookie_file_path, "rb"))
 
+        for proc in psutil.process_iter():
+            # check whether the process name matches
+            if proc.name() == "browsermob-proxy":
+                proc.kill()
+
         # finally start chrome
         self.__try_create_firefox()
 
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # closes the chrome browser
         # self.__firefox.close()
+        self.__server.stop()
         self.__firefox.quit()
 
     def __try_create_firefox(self):
@@ -55,6 +64,13 @@ class NetflixBrowser:
         # use the test video URl to try to login
         video_url = self.__get_video_url(inventory.test_video)
 
+        self.__server = Server('tools/browsermob-proxy-2.1.4/bin/browsermob-proxy')
+        self.__server.start()
+        time.sleep(1)
+
+        proxy = self.__server.create_proxy({"useEcc": True, "trustAllServers": True})
+        time.sleep(1)
+
         firefox_options = Options()
         firefox_options.headless = True
         # firefox_options.log.level = "trace"
@@ -62,8 +78,23 @@ class NetflixBrowser:
         firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
         # firefox_profile = webdriver.FirefoxProfile()
         firefox_profile.set_preference("browser.link.open_newwindow", 1)
+        firefox_profile.set_preference("network.proxy.http", "0.0.0.0")
+        firefox_profile.set_preference("network.proxy.http_port", 8080)
+        firefox_profile.set_preference("network.proxy.ssl", "0.0.0.0")
+        firefox_profile.set_preference("network.proxy.ssl_port", 8080)
+        firefox_profile.set_preference("network.proxy.type", 1)
+        firefox_profile.set_preference('network.http.use-cache', True)
+        firefox_profile.set_proxy(proxy.selenium_proxy())
 
-        self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
+        capabilities = DesiredCapabilities.FIREFOX.copy()
+        capabilities['marionette'] = True
+        capabilities['acceptSslCerts'] = True
+        capabilities['acceptInsecureCerts'] = True
+        capabilities['args'] = ["-profile", config.firefox_profile]
+
+        print(capabilities)
+
+        self.__firefox = webdriver.Firefox(options=firefox_options, capabilities=capabilities)
 
         # remember to include .xpi at the end of your file names 
         extensions = [
@@ -73,14 +104,7 @@ class NetflixBrowser:
 
         for extension in extensions:
             self.__firefox.install_addon(config.extensions_path + "/" + extension, temporary=True)
-        # extension_path = '/home/ubuntu/extension/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
         
-        # firefox_profile.add_extension(extension="/home/ubuntu/.mozilla/firefox/gexhyx73.default/extensions/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi")
-
-
-        # construct chrome & request the test url
-        # self.__firefox.install_addon(extension_path, temporary=True)
-
         self.__firefox.get(video_url)
 
         # if cookies set, add them to the browser
@@ -113,7 +137,8 @@ class NetflixBrowser:
             # submit the form
             password_field.submit()
 
-            WebDriverWait(self.__firefox, 5).until(EC.url_changes(current_url))
+            self.__firefox.save_screenshot('pro.png')
+            WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
 
             self.__firefox.save_screenshot('profile.png')
 
@@ -125,6 +150,11 @@ class NetflixBrowser:
             # save cookies for next time
             cookies = self.__firefox.get_cookies()
             pickle.dump(cookies, open(config.cookie_file_path, "wb"))
+
+            time.sleep(5)
+
+            self.__firefox.save_screenshot('log.png')
+            print('logged in')
 
     @staticmethod
     def __get_video_url(netflix_id: int, rate: int = None):
