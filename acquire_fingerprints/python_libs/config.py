@@ -25,7 +25,7 @@ class StaticConfig:
         self.error_dir = self.root_dir + "/" + "error"
         self.screenshots_dir = self.root_dir + "/" + "screenshots"
 
-        self.firefox_profile = "/home/peveloper/.mozilla/firefox/n2t7moip.tesi"
+        self.firefox_profile = "/home/peveloper/.mozilla/firefox/tqsx8ng6.test"
         self.extensions_path = self.root_dir + "/" + "tools"
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"

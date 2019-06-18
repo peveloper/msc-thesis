@@ -30,7 +30,7 @@ class NetflixBrowser:
     # Change this parameter if autoplay is not set
     __is_playing = True
     __is_page_loaded = False
-    __server = None
+    # __server = None
 
     def __enter__(self):
         # resolve credentials if possible
@@ -41,10 +41,10 @@ class NetflixBrowser:
         if os.path.isfile(config.cookie_file_path):
             self.__cookies = pickle.load(open(config.cookie_file_path, "rb"))
 
-        for proc in psutil.process_iter():
+        # for proc in psutil.process_iter():
             # check whether the process name matches
-            if proc.name() == "browsermob-proxy":
-                proc.kill()
+            # if proc.name() == "browsermob-proxy":
+                # proc.kill()
 
         # finally start chrome
         self.__try_create_firefox()
@@ -53,7 +53,7 @@ class NetflixBrowser:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # self.__firefox.close()
-        self.__server.stop()
+        # self.__server.stop()
         self.__firefox.quit()
 
     def __try_create_firefox(self):
@@ -64,42 +64,43 @@ class NetflixBrowser:
         # use the test video URl to try to login
         video_url = self.__get_video_url(inventory.test_video)
 
-        self.__server = Server('tools/browsermob-proxy-2.1.4/bin/browsermob-proxy')
-        self.__server.start()
-        time.sleep(1)
+        # self.__server = Server('tools/browsermob-proxy-2.1.4/bin/browsermob-proxy')
+        # self.__server.start()
+        # time.sleep(1)
 
-        proxy = self.__server.create_proxy({"useEcc": True, "trustAllServers": True})
-        time.sleep(1)
+        # proxy = self.__server.create_proxy({"useEcc": True, "trustAllServers": True})
+        # time.sleep(1)
 
         firefox_options = Options()
         firefox_options.headless = True
+        firefox_options.add_argument("-devtools")
         # firefox_options.log.level = "trace"
 
         firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
         # firefox_profile = webdriver.FirefoxProfile()
         firefox_profile.set_preference("browser.link.open_newwindow", 1)
-        firefox_profile.set_preference("network.proxy.http", "0.0.0.0")
-        firefox_profile.set_preference("network.proxy.http_port", 8080)
-        firefox_profile.set_preference("network.proxy.ssl", "0.0.0.0")
-        firefox_profile.set_preference("network.proxy.ssl_port", 8080)
-        firefox_profile.set_preference("network.proxy.type", 1)
-        firefox_profile.set_preference('network.http.use-cache', True)
-        firefox_profile.set_proxy(proxy.selenium_proxy())
+        firefox_profile.set_preference("devtools.toolbox.selectedTool", "netmonitor")
+        # firefox_profile.set_preference("network.proxy.http", "0.0.0.0")
+        # firefox_profile.set_preference("network.proxy.http_port", 8080)
+        # firefox_profile.set_preference("network.proxy.ssl", "0.0.0.0")
+        # firefox_profile.set_preference("network.proxy.ssl_port", 8080)
+        # firefox_profile.set_preference("network.proxy.type", 1)
+        # firefox_profile.set_preference('network.http.use-cache', True)
+        # firefox_profile.set_proxy(proxy.selenium_proxy())
 
-        capabilities = DesiredCapabilities.FIREFOX.copy()
-        capabilities['marionette'] = True
-        capabilities['acceptSslCerts'] = True
-        capabilities['acceptInsecureCerts'] = True
-        capabilities['args'] = ["-profile", config.firefox_profile]
+        # capabilities = DesiredCapabilities.FIREFOX.copy()
+        # capabilities['marionette'] = True
+        # capabilities['acceptSslCerts'] = True
+        # capabilities['acceptInsecureCerts'] = True
+        # capabilities['args'] = ["-profile", config.firefox_profile]
 
-        print(capabilities)
-
-        self.__firefox = webdriver.Firefox(options=firefox_options, capabilities=capabilities)
+        self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
 
         # remember to include .xpi at the end of your file names 
         extensions = [
             '{7be2ba16-0f1e-4d93-9ebc-5164397477a9}.xpi',
-            '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
+            '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi',
+            'har_export_trigger-0.6.1-an+fx.xpi'
         ]
 
         for extension in extensions:
@@ -115,13 +116,13 @@ class NetflixBrowser:
         # check for the login button
         login_link = self.__try_find_element_by_class("authLinks", 2)
         if login_link is not None:
-
+            current_url = self.__firefox.current_url
             # login button found, so we need to perform a login
             link = login_link.get_attribute("href")
             print(link)
             self.__firefox.get(link)
 
-            time.sleep(3)
+            WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
 
             # get username & password field
             username_field = self.__try_find_element_by_id("id_userLoginId")
@@ -208,14 +209,31 @@ class NetflixBrowser:
         self.__wait_buffering()
         print(self.__seek_video())
         self.__wait_buffering()
-        time.sleep(120)
+        time.sleep(10)
         self.__toggle_video_playback(False)
+        print(self.__get_har())
         print(self.__is_playing)
 
         self.__is_page_loaded = False
         self.__is_playing = True
 
         return True
+
+
+    def __get_har(self):
+        """
+        calls get_har.js
+
+        :return the HAR String Object
+        """
+
+        print('Getting HARs ...')
+        with open('get_har.js', 'r') as file:
+            js_script = file.read()
+
+        return self.__firefox.execute_script(js_script)
+
+
 
     def __rewind(self) -> Optional[int]:
         """
