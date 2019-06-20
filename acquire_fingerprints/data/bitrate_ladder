@@ -10,6 +10,6 @@ set xtics font ", 8"
 set ytics font ", 10"
 unset key
 set grid
-set format y "%.1s%c"
+set format "%.1s%c"
 set output sprintf("%s%s_ladder.png", plot_dir, filename)
-plot file using 1:2:xtic(sprintf('%.1fk', $1 / 1000)) w steps ls 2 title filename
+plot file using 1:2 w histeps ls 2 title filename

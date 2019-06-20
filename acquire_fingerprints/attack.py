@@ -14,7 +14,7 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 class Configuration:
     def __init__(self):
         self.capture_duration = 70 
-        self.throughputs = [235, 375, 560, 750, 1050, 1750, 2350, 3000, 4300, 5800]
+        self.throughputs = [5800]
         self.wait_after_page_load = 60
         self.wait_after_throughput_adjustment = 60
 
