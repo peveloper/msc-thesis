@@ -1,7 +1,11 @@
 import pickle
+import logging
+import traceback
 import os
 import json
 import time
+import psutil
+import jsbeautifier
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.remote.webelement import WebElement
@@ -11,6 +15,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains 
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from browsermobproxy import Server
 from typing import Optional
 
 from .config import StaticConfig
@@ -24,7 +30,10 @@ class NetflixBrowser:
     __credentials = None
     __cookies = None
     __chrome = None
-    __started = False
+    # Change this parameter if autoplay is not set
+    __is_playing = True
+    __is_page_loaded = False
+    # __server = None
 
     def __enter__(self):
         # resolve credentials if possible
@@ -35,14 +44,19 @@ class NetflixBrowser:
         if os.path.isfile(config.cookie_file_path):
             self.__cookies = pickle.load(open(config.cookie_file_path, "rb"))
 
+        # for proc in psutil.process_iter():
+            # check whether the process name matches
+            # if proc.name() == "browsermob-proxy":
+                # proc.kill()
+
         # finally start chrome
         self.__try_create_firefox()
 
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # closes the chrome browser
         # self.__firefox.close()
+        # self.__server.stop()
         self.__firefox.quit()
 
     def __try_create_firefox(self):
@@ -53,32 +67,48 @@ class NetflixBrowser:
         # use the test video URl to try to login
         video_url = self.__get_video_url(inventory.test_video)
 
+        # self.__server = Server('tools/browsermob-proxy-2.1.4/bin/browsermob-proxy')
+        # self.__server.start()
+        # time.sleep(1)
+
+        # proxy = self.__server.create_proxy({"useEcc": True, "trustAllServers": True})
+        # time.sleep(1)
+
         firefox_options = Options()
         firefox_options.headless = True
+        firefox_options.add_argument("-devtools")
         # firefox_options.log.level = "trace"
 
         firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
         # firefox_profile = webdriver.FirefoxProfile()
         firefox_profile.set_preference("browser.link.open_newwindow", 1)
+        firefox_profile.set_preference("devtools.toolbox.selectedTool", "netmonitor")
+        # firefox_profile.set_preference("network.proxy.http", "0.0.0.0")
+        # firefox_profile.set_preference("network.proxy.http_port", 8080)
+        # firefox_profile.set_preference("network.proxy.ssl", "0.0.0.0")
+        # firefox_profile.set_preference("network.proxy.ssl_port", 8080)
+        # firefox_profile.set_preference("network.proxy.type", 1)
+        # firefox_profile.set_preference('network.http.use-cache', True)
+        # firefox_profile.set_proxy(proxy.selenium_proxy())
+
+        # capabilities = DesiredCapabilities.FIREFOX.copy()
+        # capabilities['marionette'] = True
+        # capabilities['acceptSslCerts'] = True
+        # capabilities['acceptInsecureCerts'] = True
+        # capabilities['args'] = ["-profile", config.firefox_profile]
 
         self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
 
         # remember to include .xpi at the end of your file names 
         extensions = [
             '{7be2ba16-0f1e-4d93-9ebc-5164397477a9}.xpi',
-            '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
+            '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi',
+            'har_export_trigger-0.6.1-an+fx.xpi'
         ]
 
         for extension in extensions:
             self.__firefox.install_addon(config.extensions_path + "/" + extension, temporary=True)
-        # extension_path = '/home/ubuntu/extension/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
         
-        # firefox_profile.add_extension(extension="/home/ubuntu/.mozilla/firefox/gexhyx73.default/extensions/{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi")
-
-
-        # construct chrome & request the test url
-        # self.__firefox.install_addon(extension_path, temporary=True)
-
         self.__firefox.get(video_url)
 
         # if cookies set, add them to the browser
@@ -89,13 +119,13 @@ class NetflixBrowser:
         # check for the login button
         login_link = self.__try_find_element_by_class("authLinks", 2)
         if login_link is not None:
-
+            current_url = self.__firefox.current_url
             # login button found, so we need to perform a login
             link = login_link.get_attribute("href")
             print(link)
             self.__firefox.get(link)
 
-            time.sleep(3)
+            WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
 
             # get username & password field
             username_field = self.__try_find_element_by_id("id_userLoginId")
@@ -111,7 +141,8 @@ class NetflixBrowser:
             # submit the form
             password_field.submit()
 
-            WebDriverWait(self.__firefox, 5).until(EC.url_changes(current_url))
+            self.__firefox.save_screenshot('pro.png')
+            WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
 
             self.__firefox.save_screenshot('profile.png')
 
@@ -123,6 +154,11 @@ class NetflixBrowser:
             # save cookies for next time
             cookies = self.__firefox.get_cookies()
             pickle.dump(cookies, open(config.cookie_file_path, "wb"))
+
+            time.sleep(5)
+
+            self.__firefox.save_screenshot('log.png')
+            print('logged in')
 
     @staticmethod
     def __get_video_url(netflix_id: int, rate: int = None):
@@ -140,8 +176,6 @@ class NetflixBrowser:
 
         self.__firefox.get(video_url)
         print(self.__firefox.current_url)
-
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
 
         try:
             WebDriverWait(self.__firefox, 60).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
@@ -171,95 +205,184 @@ class NetflixBrowser:
                 return True
 
 
-        print('page loaded ..')
-        
-        actions = ActionChains(self.__firefox)
+        while not self.__is_page_loaded:
+            self.__is_page_loaded = self.__get_page_status()
 
-        try:
-            WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
+        print(self.__rewind())
+        self.__wait_buffering()
+        print(self.__seek_video())
+        self.__wait_buffering()
+        time.sleep(120)
+        self.__toggle_video_playback(False)
+        print(self.__get_har(netflix_id, rate))
+        print(self.__is_playing)
 
-        print('spinning ..')
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_1.png")
-
-        try:
-            WebDriverWait(self.__firefox, 60).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        print('ready')
-
-        for i in range(0, 100):
-            actions.send_keys(Keys.LEFT).perform()
-
-        try:
-            WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        print('spinning ..')
-
-        try:
-            WebDriverWait(self.__firefox, 60).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-        except TimeoutException:
-            print('timeout')
-
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + "_2.png")
-
-        print('OK')
-
-        # pos = controller.get_attribute("aria-valuenow")
-        print('NOT')
-
-        #skip first 300 seconds
-        for i in range(0, 30):
-            actions.send_keys(Keys.RIGHT)
-        actions.perform()
-
-        actions \
-            .key_down("r") \
-            .perform()
-            # .key_down(Keys.CONTROL) \
-            # .key_down(Keys.SHIFT) \
-            # .key_down(Keys.ALT) \
-            # .send_keys("d") \
-            # .key_up(Keys.SHIFT) \
-            # .key_up(Keys.ALT) \
-            # .key_up(Keys.CONTROL) \
-
-        actions.send_keys(Keys.SPACE).perform()
-        
-        start_time = time.time()
-        spinner = self.__try_find_element_by_class("nf-loading-spinner")
-
-        if spinner.is_displayed():
-            sleep_time = 0
-
-            try:
-                WebDriverWait(self.__firefox, 10).until(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-                self.__started = False
-            except TimeoutException:
-                print('timeout')
-
-            print('spinning ..')
-
-            try:
-                WebDriverWait(self.__firefox, 360).until_not(EC.visibility_of_element_located((By.CLASS_NAME, "nf-loading-spinner")))
-            except TimeoutException:
-                print('timeout')
-
-            print('ready')
-        else:
-            sleep_time = time.time() - start_time
-            print('no spinner')
-
-        
-        time.sleep(120 / config.speedup - sleep_time)
-        actions.key_down(Keys.SPACE).perform()
-        self.__firefox.save_screenshot(config.screenshots_dir + "/" + str(netflix_id) + "_" + str(rate) + ".png")
+        self.__is_page_loaded = False
+        self.__is_playing = True
 
         return True
+
+
+    def __get_har(self, netflix_id: int, rate: int) -> Optional[bool]:
+        """
+        calls get_har.js and save the HAR as a JSON file
+
+        :return True if HAR gets retrieved, False otherwise
+        """
+
+        print('Getting HARs ...')
+        with open('get_har.js', 'r') as file:
+            js_script = file.read()
+
+        content = self.__firefox.execute_script(js_script)
+        filename = str(netflix_id) + "_" + str(rate) + ".har"
+
+        packets = content['entries']
+
+        entries = []
+        for packet in packets:
+            har_entry = HarEntry()
+            har_entry.url = packet["request"]["url"]
+            har_entry.body_size = int(packet["response"]["bodySize"])
+
+            if "video.net/range/" in har_entry.url:
+                har_entry.is_video = True
+
+                # cut of url at /range to parse it
+                range_url = har_entry.url[(har_entry.url.rindex("/range") + len("/range") + 1):]
+
+                # remove query parameters
+                if "?" in range_url:
+                    range_url = range_url[:range_url.index("?")]
+
+                # parse range (of the form 7123-8723)
+                ranges = range_url.split("-")
+                har_entry.range_start = int(ranges[0])
+                har_entry.range_end = int(ranges[1])
+                entries.append(har_entry)
+
+        with open(config.har_dir  + "/" + filename, 'w') as file:
+            for entry in entries:
+                if entry.body_size > 200000:
+                    file.write(str(entry.get_length()) + '\t' + str(entry.range_start) + '\t' + str(entry.range_end) + '\t' + str(entry.body_size) + '\n')
+            
+        # print(content['entries'])
+
+
+        # for entry in content["log"]["entries"]:
+            # packets.append(entry)
+
+        # print(len(packets))
+
+
+        # print(filename)
+
+        # try:
+            # har = json.loads(json.dumps(har_dict))
+        # except Exception as e:
+            # logging.error(traceback.format_exc())
+
+
+        # if har is None:
+            # return False
+
+        # with open(config.har_dir + "/" + filename, 'w') as file:
+            # try:
+                # json.dump(har, file)
+            # except Exception as e:
+                # logging.error(traceback.format_exc())
+
+        return True
+
+
+
+    def __rewind(self) -> Optional[int]:
+        """
+        calls rewind.js that rewinds the video
+
+        :return the new current time in ms 
+        """
+
+        print('Rewind ...')
+        with open('rewind.js', 'r') as file:
+            js_script = file.read()
+
+        return self.__firefox.execute_script(js_script)
+
+
+
+    def __wait_buffering(self):
+        """
+        calls player_state.js and waits for the buffering to be complete
+
+        """
+
+        with open('player_state.js', 'r') as file:
+            js_script = file.read()
+
+        print('Buffering ...')
+        while self.__firefox.execute_script(js_script) is not None:
+            print('...')
+            time.sleep(1)
+        print('\n')
+            
+        return
+
+
+    def __seek_video(self) -> Optional[int]:
+        """
+        calls seek_video.js that seeks the playback forward
+
+        :return the new current time in ms 
+        """
+
+        print('Seeking ...')
+        with open('seek_video.js', 'r') as file:
+            js_script = file.read()
+
+        return self.__firefox.execute_script(js_script)
+
+
+    def __toggle_video_playback(self, play: bool) -> Optional[bool]:
+        """
+        calls either play.js or pause.js 
+
+        :param play: True for play, False for pause
+        :return True if playing, False otherwise
+        """
+
+        if play:
+            filename = 'play_video.js'
+            print('Starting playback ...')
+        else:
+            filename = 'pause_video.js'
+            print('Pausing playback ...')
+
+        with open(filename, 'r') as file:
+            js_script = file.read()
+        self.__is_playing = self.__firefox.execute_script(js_script)
+
+        return self.__is_playing
+
+    def __get_page_status(self) -> Optional[bool]:
+        """
+        calls page_status.js that check if the player is loaded
+
+        :return True if the player is loaded, False otherwise
+        """
+
+        with open('page_status.js', 'r') as file:
+            js_script = file.read()
+
+        print('Loading Netflix video player ...')
+        while not self.__is_page_loaded:
+            # js boolean gets casted into python's bool
+            self.__is_page_loaded = self.__firefox.execute_script(js_script)
+            time.sleep(1)
+
+        print('Player is ready!')
+        return True
+
 
     def __try_find_element_by_id(self, css_id: str, retries: int = 5) -> Optional[WebElement]:
         """
@@ -318,3 +441,18 @@ class NetflixBrowser:
                 time.sleep(1)
                 retries -= 1
         return None
+
+class HarEntry:
+
+    def __init__(self):
+        self.url = None
+        self.body_size = None
+        self.is_video = False
+        self.range_start = None
+        self.range_end = None
+
+    def __repr__(self):
+        return self.__dict__.__repr__()
+
+    def get_length(self):
+        return self.range_end - self.range_start
