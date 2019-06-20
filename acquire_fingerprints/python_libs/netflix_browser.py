@@ -1,8 +1,11 @@
 import pickle
+import logging
+import traceback
 import os
 import json
 import time
 import psutil
+import jsbeautifier
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.remote.webelement import WebElement
@@ -209,9 +212,9 @@ class NetflixBrowser:
         self.__wait_buffering()
         print(self.__seek_video())
         self.__wait_buffering()
-        time.sleep(10)
+        time.sleep(120)
         self.__toggle_video_playback(False)
-        print(self.__get_har())
+        print(self.__get_har(netflix_id, rate))
         print(self.__is_playing)
 
         self.__is_page_loaded = False
@@ -220,18 +223,76 @@ class NetflixBrowser:
         return True
 
 
-    def __get_har(self):
+    def __get_har(self, netflix_id: int, rate: int) -> Optional[bool]:
         """
-        calls get_har.js
+        calls get_har.js and save the HAR as a JSON file
 
-        :return the HAR String Object
+        :return True if HAR gets retrieved, False otherwise
         """
 
         print('Getting HARs ...')
         with open('get_har.js', 'r') as file:
             js_script = file.read()
 
-        return self.__firefox.execute_script(js_script)
+        content = self.__firefox.execute_script(js_script)
+        filename = str(netflix_id) + "_" + str(rate) + ".har"
+
+        packets = content['entries']
+
+        entries = []
+        for packet in packets:
+            har_entry = HarEntry()
+            har_entry.url = packet["request"]["url"]
+            har_entry.body_size = int(packet["response"]["bodySize"])
+
+            if "video.net/range/" in har_entry.url:
+                har_entry.is_video = True
+
+                # cut of url at /range to parse it
+                range_url = har_entry.url[(har_entry.url.rindex("/range") + len("/range") + 1):]
+
+                # remove query parameters
+                if "?" in range_url:
+                    range_url = range_url[:range_url.index("?")]
+
+                # parse range (of the form 7123-8723)
+                ranges = range_url.split("-")
+                har_entry.range_start = int(ranges[0])
+                har_entry.range_end = int(ranges[1])
+                entries.append(har_entry)
+
+        with open(config.har_dir  + "/" + filename, 'w') as file:
+            for entry in entries:
+                if entry.body_size > 200000:
+                    file.write(str(entry.get_length()) + '\t' + str(entry.range_start) + '\t' + str(entry.range_end) + '\t' + str(entry.body_size) + '\n')
+            
+        # print(content['entries'])
+
+
+        # for entry in content["log"]["entries"]:
+            # packets.append(entry)
+
+        # print(len(packets))
+
+
+        # print(filename)
+
+        # try:
+            # har = json.loads(json.dumps(har_dict))
+        # except Exception as e:
+            # logging.error(traceback.format_exc())
+
+
+        # if har is None:
+            # return False
+
+        # with open(config.har_dir + "/" + filename, 'w') as file:
+            # try:
+                # json.dump(har, file)
+            # except Exception as e:
+                # logging.error(traceback.format_exc())
+
+        return True
 
 
 
@@ -380,3 +441,18 @@ class NetflixBrowser:
                 time.sleep(1)
                 retries -= 1
         return None
+
+class HarEntry:
+
+    def __init__(self):
+        self.url = None
+        self.body_size = None
+        self.is_video = False
+        self.range_start = None
+        self.range_end = None
+
+    def __repr__(self):
+        return self.__dict__.__repr__()
+
+    def get_length(self):
+        return self.range_end - self.range_start

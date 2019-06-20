@@ -22,6 +22,7 @@ class StaticConfig:
 
         self.plot_dir = self.root_dir + "/" + "plot"
         self.log_dir = self.root_dir + "/" + "log"
+        self.har_dir = self.root_dir + "/" + "har"
         self.error_dir = self.root_dir + "/" + "error"
         self.screenshots_dir = self.root_dir + "/" + "screenshots"
 

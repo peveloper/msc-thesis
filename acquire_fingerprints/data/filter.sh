@@ -4,6 +4,7 @@
 mkdir plots
 
 speedup=1.0
+minutes_recorded=2
 
 #read_elapsed_time () {
     #awk '/^ADU/ {if(c++==0) {d1=$1}} END{printf("%.2f%s\t", $1-d1, " secs")}' $1
@@ -11,7 +12,7 @@ speedup=1.0
 
 for file in ../log/*; do
     filename="${file##*/}"
-    awk '/^ADU/||$5 ~ /^45*/ {if(c++>0 && $4=="<1" && $6>200000){time_diff=$2-_n; cum_time+=time_diff; printf("%.11f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
+    awk '/^ADU/ && $5 ~ /^45*/ {if(c++>0 && $4=="<1" && $6>200000){time_diff=$2-_n; cum_time+=time_diff; printf("%.11f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
     #read_elapsed_time $filename.dat
     gnuplot -e "file='${filename}.dat'" singleplot
 done
@@ -29,7 +30,7 @@ for record in *.dat; do
     echo $filename
 
     awk -v speedup="${speedup}" '{if(c++>0) {diff+=$1-_n; printf("%.5f\n", $2)}; {_n=$1}}' $record > bytespec.tmp
-    measured_bitrate=$(awk -v elapsed="${elapsed_time}" '{sum+=$1}END{printf("%.5f", sum / elapsed / NR)}' bytespec.tmp)
+    measured_bitrate=$(awk -v elapsed="${minutes_recorded}" '{sum+=$1}END{printf("%.5f", (sum * 1e-9) / (elapsed * 0.0075)* 1e3)}' bytespec.tmp)
     printf "%d\t%.3f\n" $tp $measured_bitrate >> $filename.bl
     rm -rf bytespec.tmp
 
