@@ -35,7 +35,7 @@ for record in *.dat; do
     rm -rf bytespec.tmp
 
     printf "%d\t%d\n" $id $tp >> db.dat
-    cat $record >> db.dat
+    awk '{print $2}' $record >> db.dat
 done
 
 titles=$'\r\n' GLOBIGNORE='*' command eval  'ids=($(cat titles))'
