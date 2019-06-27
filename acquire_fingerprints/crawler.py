@@ -38,10 +38,9 @@ class netflixSpider(scrapy.Spider):
                 titleValue = movie.css('a span::text').extract_first()
 
                 yield {
+                    'id': movieId,
                     'genre': genreValue,
-                    'title': titleValue,
-                    'page': pageValue,
-                    'id': movieId
+                    'title': titleValue
                 }
 
             if pageLink and pageLink not in self.visitedLinks:

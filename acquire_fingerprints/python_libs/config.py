@@ -1,4 +1,5 @@
 import os
+import json
 
 
 class StaticConfig:
@@ -42,21 +43,7 @@ class Inventory:
         # netflix test video
         self.test_video = 80018499
 
-        # action
-        self.transformers = 70103763
-        self.civil_war = 80088567
-
-        # anime
-        self.naruto = 70105699
-        self.berserk = 70276596
-
-        # documentaries
-        self.minimalism = 80114460
-        self.expedition_happiness = 80225528
-
-        # cartoon
-        self.family_guy = 80111454
-        self.bojack_horseman = 70298930
+    def get_movies(self):
 
     def full_capture(self):
         return self.__dict__

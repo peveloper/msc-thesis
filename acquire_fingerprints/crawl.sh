@@ -1,1 +1,1 @@
-scrapy runspider crawler.py -s FEED_URI=results/result.json -s FEED_FORMAT=json
+scrapy runspider crawler.py -s FEED_URI=netflix_titles/titles.csv -s FEED_FORMAT=CSV
