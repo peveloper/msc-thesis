@@ -3,6 +3,7 @@
 import datetime
 import time
 import humanfriendly
+import subprocess
 
 from python_libs.config import StaticConfig
 from python_libs.config import Inventory
@@ -11,45 +12,24 @@ from python_libs.adudump_capture import AdudumpCapture
 from python_libs.bandwidth_manipulator import BandwidthManipulator
 
 
-class Configuration:
-    def __init__(self):
-        self.capture_duration = 70 
-        self.throughputs = [5800]
-        self.wait_after_page_load = 60
-        self.wait_after_throughput_adjustment = 60
+config = StaticConfig()
+inventory = Inventory()
 
+video_ids = inventory.get_movies()
+genres = inventory.get_genres() 
+video_ids = inventory.get_selection_of_movies_by_genre()
 
-static_config = StaticConfig()
-# video_ids = Inventory().full_capture()
-video_ids = [
-        '70305892'
-        # '80161055',
-        # '80215419',
-        # '80164032',
-        # '80131414',
-        # '80244455',
-        # '70124999',
-        # '70115629',
-        # '70216224'
-        ]
-
-
-# define the ids we want to capture
-config = Configuration()
+print(video_ids)
 
 # calculate length of capture for user
 loop_count = len(config.throughputs)
 video_count = len(video_ids)
-loop_length = config.capture_duration + config.wait_after_throughput_adjustment
-full_length = video_count * (
-    config.wait_after_page_load + loop_count * loop_length
-)
-print(
-    "this capture will run for " + humanfriendly.format_timespan(full_length)
-)
+loop_length = (config.capture_duration + config.wait_after_throughput_adjustment)
+full_length = video_count * (loop_count * loop_length)
+print("This capture will run for " + humanfriendly.format_timespan(full_length))
 
-local_ip = static_config.local_ip
-interface = static_config.network_device
+local_ip = config.local_ip
+interface = config.network_device
 
 def main():
     # initialize the bandwidth
@@ -64,12 +44,7 @@ def main():
                 for throughput in config.throughputs:
 
                     # inform user
-                    print("capturing " + video + " with id " + str(video_id))
-                    print("starting capture at " + str(throughput) + "kbps")
-                    print(
-                        "waiting for " + str(config.wait_after_page_load) +
-                        "s till capture starts"
-                    )
+                    print("Capturing " + video + " with id " + str(video_id))
 
                     # set initial amount
                     bandwidth.set_rate(str(throughput) + "kbps")
@@ -90,13 +65,14 @@ def main():
                         if not browser.navigate(video_id, throughput):
                             print("could not navigate to video")
                             continue
+                    
+                    subprocess.Popen("mv geckodriver.log " + config.error_dir + "/" + filename + ".log", shell=True, universal_newlines=True, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+)
 
-                        # waiting to dump
-                        # time.sleep(180)
 
-
-
-    print("finished")
+    
+    return
 
 if __name__ == "__main__":
     main()
