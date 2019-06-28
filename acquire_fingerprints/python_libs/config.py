@@ -1,37 +1,39 @@
 import os
+import csv
 
 
 class StaticConfig:
     def __init__(self):
         self.root_dir = os.path.abspath(os.path.dirname("."))
 
-        self.skip_seconds = 120
-        self.wait_seconds = 4
-
-        self.capture_version = 1
-        self.attack_version = 1
-
-        self.analyze_dir = self.root_dir + "/" + "analyze"
+        self.capture_duration = 12
+        self.wait_after_throughput_adjustment = 20
+        self.throughputs = [300, 450, 600, 800, 1200, 2000, 3500, 4800, 6500, 10000]
+        # self.throughputs = [50000]
 
         self.adudump_dir = self.root_dir + "/" + "tools/adudump"
-
         self.config_dir = self.root_dir + "/" + "config"
         self.temp_dir = self.root_dir + "/" + "temp"
-
-        self.attack_dir = self.root_dir + "/" + "attack"
-
-        self.plot_dir = self.root_dir + "/" + "plot"
         self.log_dir = self.root_dir + "/" + "log"
         self.har_dir = self.root_dir + "/" + "har"
         self.error_dir = self.root_dir + "/" + "error"
         self.screenshots_dir = self.root_dir + "/" + "screenshots"
+        self.titles_dir = self.root_dir + "/" + "netflix_titles"
+        self.extensions_dir = self.root_dir + "/" + "tools"
 
-        self.firefox_profile = "/home/peveloper/.mozilla/firefox/tqsx8ng6.test"
-        self.extensions_path = self.root_dir + "/" + "tools"
+        self.firefox_profile = "/home/peveloper/.mozilla/firefox/g5b7l3vb.test"
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"
+        self.selected_genres = [
+            'Comedies',
+            'Thrillers',
+            'Sci-Fi & Fantasy',
+            'Documentaries',
+            'Movies for ages 8 to 10'
+        ]
+        self.movies_per_genre = 5
 
-        self.speedup = 1.0
+        self.speedup = 10.0
 
         self.local_ip = "192.168.0.157/24"
         self.network_device = "enp3s0"
@@ -41,25 +43,45 @@ class Inventory:
     def __init__(self):
         # netflix test video
         self.test_video = 80018499
+        self.config = StaticConfig()
 
-        # action
-        self.transformers = 70103763
-        self.civil_war = 80088567
+    def get_genres(self):
+        self.genres = set()
+        for id in self.movies_by_id.keys():
+            self.genres.add(self.movies_by_id[id])
+        print(self.genres)
+        return 
 
-        # anime
-        self.naruto = 70105699
-        self.berserk = 70276596
+    def get_selection_of_movies_by_genre(self):
+        self.movies_selection = []
 
-        # documentaries
-        self.minimalism = 80114460
-        self.expedition_happiness = 80225528
+        self.selected_genres = self.config.selected_genres 
 
-        # cartoon
-        self.family_guy = 80111454
-        self.bojack_horseman = 70298930
+        for genre in self.selected_genres:
+            for x in range(0, self.config.movies_per_genre):
+                self.movies_selection.append(self.movies_by_genre[genre][x])
 
-    def full_capture(self):
-        return self.__dict__
+        return self.movies_selection
 
-    def small_capture(self):
-        return {"bojack": self.bojack_horseman, "family": self.family_guy}
+    def get_movies(self):
+        self.movies_by_id = {}
+        self.movies_by_genre = {}
+        with open(self.config.titles_dir + "/" + "titles.csv" , mode='r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            line_count = 0
+            for row in csv_reader:
+                id = row['id']
+                genre = row['genre']
+                title = row['title']
+
+                if line_count == 0:
+                    line_count += 1
+                if row["id"] not in self.movies_by_id:
+                    # add movie
+                    self.movies_by_id[id] = genre
+                    try:
+                        self.movies_by_genre[genre].append(id)
+                    except KeyError:
+                        self.movies_by_genre[genre] = []
+                line_count += 1
+        return self.movies_by_id

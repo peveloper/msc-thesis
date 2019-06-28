@@ -7,4 +7,4 @@ set title sprintf("Fingerprint ID: %s", file[1:strstrt(file, "_") - 1]."-".file[
 set term png
 print file
 set output sprintf("%s%s.png", plot_dir, filename)
-plot file with lines title substr(file, 0, strstrt(file, "_"))
+plot file with impulses title substr(file, 0, strstrt(file, "_"))

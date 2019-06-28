@@ -5,7 +5,6 @@ function rewind() {
     const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId);
 
     player.seek(-9999999999999);
-    return player.getCurrentTime();
 }
 
 return rewind();
