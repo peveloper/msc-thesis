@@ -50,7 +50,7 @@ for title in "${ids[@]}"; do
     echo $title
 
     files=$(ls *.dat.bl | grep $title)
-    fingerprints=$(ls *.dat | grep $title)
+    fingerprints=$(ls *.dat | grep $title | sort -k2,2n -t '_') 
     bitrate_ladder_data=$title.dat.bl
 
     cat $files >> $bitrate_ladder_data

@@ -17,7 +17,9 @@ inventory = Inventory()
 
 video_db = inventory.get_movies()
 genres = inventory.get_genres() 
-video_ids = inventory.get_selection_of_movies_by_genre()[12:]
+# not in swiss catalogue: 19
+# video_ids = inventory.get_selection_of_movies_by_genre()[20:]
+video_ids = ['80017357']
 
 print("Capturing %d titles at %d bandwidth levels" % (len(video_ids), len(config.throughputs)))
 
