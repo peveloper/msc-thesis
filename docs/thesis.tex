@@ -143,8 +143,8 @@
 
 % For hyperlinking inside the document
 \usepackage[hidelinks,
-  pdftitle={Visual Debugging for Symbolic Execution},
-  pdfauthor={Alessio Aurecchia}
+  pdftitle={De-anonymizing encrypted video streams},
+  pdfauthor={Stefano Peverelli}
 ]{hyperref}
 \usepackage{cleveref}
 \crefname{lstlisting}{listing}{listings}
@@ -201,9 +201,6 @@
 \usepackage{listings}
 \newcommand{\passthrough}[1]{#1}
 
-\input{alloy_lst.tex}
-\input{viper_lst.tex}
-
 \lstset{ 
   basicstyle=\ttfamily,        % the size of the fonts that are used for the code
   commentstyle=\itshape\color{gray},
@@ -225,38 +222,6 @@
   moredelim={[is][\uwave]{__}{__}}
 }
 
-\lstdefinestyle{numbersnippet}{
-  numbers=left,numberstyle=\footnotesize\ttfamily\color{gray},
-  xleftmargin=20pt,
-  framexleftmargin=22pt,
-}
-
-\lstdefinestyle{framedcode}{
-  % float,
-  floatplacement={!htbp},captionpos=b,
-  frame=lines,xleftmargin=8pt,xrightmargin=8pt,
-  numbers=left,numberstyle=\footnotesize\ttfamily\color{gray},
-  aboveskip=1.5em,
-  xleftmargin=27pt,
-  framexleftmargin=22pt,
-}
-\lstnewenvironment{viperSnippet}{%
-    \lstset{language=Viper,mathescape}}{}
-
-\lstnewenvironment{alloySnippet}{%
-    \lstset{language=Alloy,mathescape}}{}
-
-\lstnewenvironment{alloyCode}[1][]{%
-    \lstset{language=Alloy,style=framedcode,#1}}{}
-
-\lstnewenvironment{viperCode}[1][]{%
-    \lstset{language=Viper,style=framedcode,#1}}{}
-
-\newcommand{\viper}[1]{\lstinline[language=Viper]{#1}}
-\newcommand{\alloy}[1]{\lstinline[language=Alloy]{#1}}
-
-\newcommand{\cod}[1]{\texttt{\textbf{#1}}}
-\newcommand{\tr}[1]{\textsf{translate}(#1)}
 
 \newenvironment{nsflalign*}
  {\setlength{\abovedisplayskip}{0pt}\setlength{\belowdisplayskip}{0pt}%
@@ -328,20 +293,20 @@
 \begin{titlepage}
   \centering \itshape
   \vspace*{6em}{
-    {\Huge Visual Debugging for \\ Symbolic Execution\par}
+    {\Huge De-anonymizing \\ Encrypted Video Streams\par}
   }
 
   \vspace*{1em}{\Large Master's Thesis}\par
-  16 September 2018\par
+  7 September 2018\par
 
-  \vspace*{4em}{\huge Alessio Aurecchia \\
-  \small \upshape \url{aalessio@student.ethz.ch}}\par
+  \vspace*{4em}{\huge Stefano Peverelli \\
+  \small \upshape \url{pstefano@student.ethz.ch}}\par
 
   \vspace*{2em}{\large supervised by \\
-  \Large \itshape Arshavir Ter-Gabrielyan}
+  \Large \itshape Melissa Licciardello}
 
   \vspace*{20em}{
-  \normalsize \upshape Chair of Programming Methodology\\
+  \normalsize \upshape Systems Group\\
   Department of Computer Science\\
   ETH Zürich}
 
