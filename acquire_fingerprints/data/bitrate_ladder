@@ -12,4 +12,4 @@ unset key
 set grid
 set format "%.1s%c"
 set output sprintf("%s%s_ladder.png", plot_dir, filename)
-plot file using 1:2 w histeps ls 2 title filename
+plot file using 1:2 w lp ls 2 title filename

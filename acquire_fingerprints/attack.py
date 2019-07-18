@@ -15,11 +15,11 @@ from python_libs.bandwidth_manipulator import BandwidthManipulator
 config = StaticConfig()
 inventory = Inventory()
 
-video_ids = inventory.get_movies()
+video_db = inventory.get_movies()
 genres = inventory.get_genres() 
 video_ids = inventory.get_selection_of_movies_by_genre()
 
-print(video_ids)
+print("Capturing %d titles at %d bandwidth levels" % (len(video_ids), len(config.throughputs)))
 
 # calculate length of capture for user
 loop_count = len(config.throughputs)
@@ -30,6 +30,29 @@ print("This capture will run for " + humanfriendly.format_timespan(full_length))
 
 local_ip = config.local_ip
 interface = config.network_device
+
+def capture_movie(browser, local_ip, interface, filename, video_id, throughput):
+    finished = False
+    # initialize the adudump capture
+    with AdudumpCapture(local_ip, interface, filename) as capture:
+
+        print(
+            "capturing at " + str(throughput) + "kbps for " +
+            str(config.capture_duration) + "s"
+        )
+
+
+        if browser.navigate(video_id, throughput):
+            return True
+            # finished = True
+            # print('here')
+            # capture.__exit__()
+
+    # if finished:
+        # time.sleep(10)
+        # return True
+
+    return False
 
 def main():
     # initialize the bandwidth
@@ -53,25 +76,8 @@ def main():
                     filename = str(video_id) + '_'
                     filename += str(throughput)
 
-                    # initialize the adudump capture
-                    with AdudumpCapture(local_ip, interface, filename) as capture:
-
-                        print(
-                            "capturing at " + str(throughput) + "kbps for " +
-                            str(config.capture_duration) + "s"
-                        )
-
-                        # navigate to video
-                        if not browser.navigate(video_id, throughput):
-                            print("could not navigate to video")
-                            continue
-                    
-                    subprocess.Popen("mv geckodriver.log " + config.error_dir + "/" + filename + ".log", shell=True, universal_newlines=True, stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE
-)
-
-
-    
+                    while not capture_movie(browser, local_ip, interface, filename, video_id, throughput):
+                        time.sleep(1)
     return
 
 if __name__ == "__main__":

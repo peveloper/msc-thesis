@@ -1,0 +1,363 @@
+\documentclass[
+  11pt,
+  twoside,
+  a4paper,
+  BCOR=8.25mm,
+  parskip=half,
+  numbers=noendperiod,
+  toc=bib,
+  chapterprefix=true]{scrbook}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage[square, numbers]{natbib}
+\usepackage[titletoc]{appendix}
+\RedeclareSectionCommand[tocbeforeskip=1ex plus 1pt minus 1pt]{chapter}
+
+% \usepackage{libertineRoman}
+\usepackage[bold]{roboto}
+\usepackage[libertine,cmintegrals,cmbraces,vvarbb]{newtxmath}
+\usepackage{mathpazo} % add possibly `sc` and `osf` options
+
+% \renewcommand{\ttdefault{GoMono-TLF}}
+\setkomafont{chapterentry}{\usefont{T1}{Crimson-TLF}{sb}{n}\large}
+
+% \setkomafont{sectioning}{\usefont{T1}{Crimson-TLF}{m}{it}}
+\setkomafont{chapter}{\usefont{T1}{PTSans-TLF}{m}{it}\fontsize{1.2cm}{1.5cm}\selectfont}
+% \setkomafont{chapter}{\usefont{T1}{Crimson-TLF}{m}{it}\fontsize{1.2cm}{1.5cm}\selectfont}
+\setkomafont{section}{\usefont{T1}{Crimson-TLF}{sb}{n}\LARGE}
+\setkomafont{subsection}{\usefont{T1}{Crimson-TLF}{m}{it}\Large}
+\setkomafont{subsubsection}{\usefont{T1}{Crimson-TLF}{m}{it}\large}
+\setkomafont{paragraph}{\usefont{T1}{Crimson-TLF}{m}{it}\large}
+
+
+\usepackage[scaled=0.9]{GoMono}
+\usepackage[scale=0.93]{FiraSans}
+
+\RedeclareSectionCommand[
+  beforeskip=3em,
+  afterskip=2em
+]{chapter}
+
+\RedeclareSectionCommand[
+  % beforeskip=1em,
+  beforeskip=0.9em,
+  afterskip=0.4em
+]{section}
+
+\RedeclareSectionCommand[
+  % beforeskip=1em,
+  beforeskip=0.8em,
+  afterskip=0.3em
+]{subsection}
+
+\RedeclareSectionCommand[
+  % beforeskip=1em,
+  beforeskip=0.4em,
+  afterskip=0.3em
+]{subsubsection}
+
+% \RedeclareSectionCommand[
+%   % beforeskip=1em,
+%   beforeskip=0.5em,
+%   afterskip=-0.8em
+% ]{subsubsection}
+
+\RedeclareSectionCommand[
+  beforeskip=0em,
+  % afterskip=0.05em
+]{paragraph}
+
+\RedeclareSectionCommand[
+  beforeskip=0em,
+  % afterskip=0.05em
+]{subparagraph}
+
+\renewcommand{\chapterheadmidvskip}{%
+  \par\nobreak%\vskip -0.2em
+}
+\renewcommand*{\chapterformat}{%
+  % \scalebox{2}{\sffamily \upshape \thechapter}%
+  % \scalebox{1.5}{\sffamily \upshape \thechapter}%
+  \fontsize{2.5cm}{1cm}\selectfont \upshape \roboto \color{black!40} \hfill \thechapter%
+}
+% \renewcommand{\raggedchapter}{\raggedleft}
+
+% \renewcommand*{\sectionformat}{%
+%   \makebox[0pt]{\makebox[2\linewidth][r]{\thesection}}%
+% }
+
+% \renewcommand*{\subsectionformat}{}
+% \renewcommand*{\subsectionformat}{%
+%   \makebox[0pt]{\makebox[2\linewidth][r]{\upshape\thesubsection}}%
+% }
+
+% \usepackage{placeins}
+
+% \let\Oldsection\section
+% \renewcommand{\section}{\FloatBarrier\Oldsection}
+
+% \let\Oldsubsection\subsection
+% \renewcommand{\subsection}{\FloatBarrier\Oldsubsection}
+
+% \let\Oldsubsubsection\subsubsection
+% \renewcommand{\subsubsection}{\FloatBarrier\Oldsubsubsection}
+
+\usepackage{enumitem}
+\setlist[description]{font=\rmfamily}
+
+\usepackage[normalem]{ulem}
+\renewcommand{\ULdepth}{1.8pt}
+\makeatletter
+\def\uwave{\bgroup \markoverwith{\lower3.5\p@\hbox{\sixly \textcolor{red}{\char58}}}\ULon}
+\font\sixly=lasyb10 scaled 700 % does not re-load if already loaded, so no memory problem.
+\makeatother
+
+% To use graphics
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% For changing table sizes / columns
+\usepackage{siunitx}
+\usepackage{tabularx}
+\usepackage{makecell}
+
+% To force figures in place
+\usepackage{float}
+
+% Define thick column for tables
+\makeatletter
+\newcommand{\thickhline}{%
+\noalign {\ifnum 0=`}\fi \hrule height 1.2pt
+  \futurelet \reserved@a \@xhline
+}
+\makeatother
+\newcolumntype{?}{!{\vrule width 1.2pt}}
+
+\newcommand{\core}{{\color{ForestGreen} \small \sffamily \textbf{C}}}
+\newcommand{\ext}{{\color{RedOrange} \small \sffamily \textbf{E}}}
+
+% For hyperlinking inside the document
+\usepackage[hidelinks,
+  pdftitle={Visual Debugging for Symbolic Execution},
+  pdfauthor={Alessio Aurecchia}
+]{hyperref}
+\usepackage{cleveref}
+\crefname{lstlisting}{listing}{listings}
+\Crefname{lstlisting}{Listing}{Listings}
+\Crefname{appsec}{Appendix}{Appendices}
+
+% \def\sectionautorefname{Section}
+% \def\sectionautorefname{Section}
+% \def\subsectionautorefname{Subection}
+% \newcommand*{\Appendixautorefname}{Appendix}
+
+% To produce tightly spaced lists, used by pandoc
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{4pt}
+  \setlength{\parskip}{0pt}
+}
+
+% Additional table options, allows to force it to \textwidth
+\usepackage{tabularx}
+
+% Provide \todo command to insert todo items in the document
+\usepackage[dvipsnames]{xcolor,colortbl}
+\newcommand{\todo}[1]{ {\color{RedOrange} \textit{\textbf{TODO:} #1}} }
+
+% Make space befor "titled paragraphs" smaller
+% \RedeclareSectionCommand[
+  % beforeskip=.5\baselineskip]{paragraph}
+
+% Remove numbers from sections
+% \makeatletter
+% \renewcommand{\@seccntformat}[1]{}
+% \makeatother
+
+% \makeatletter
+% \def\@seccntformat#1{%
+%   \expandafter\ifx\csname c@#1\endcsname\c@section\else
+%   \csname the#1\endcsname\quad
+%   \fi}
+% \makeatother
+
+% Only number sub-paragraphs
+% \makeatletter
+% \def\@seccntformat#1{%
+%   \expandafter\ifx\csname c@#1\endcsname\c@subparagraph \thesubparagraph\enspace
+%   \else
+%   \fi}
+% \makeatother
+
+% Change sub-paragraph numbering format to only show one digit
+% \renewcommand{\thesubparagraph}{\arabic{subparagraph}.}
+% \renewcommand{\theparagraph}{\arabic{paragraph}.}
+\setcounter{secnumdepth}{2}
+
+\usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
+
+\input{alloy_lst.tex}
+\input{viper_lst.tex}
+
+\lstset{ 
+  basicstyle=\ttfamily,        % the size of the fonts that are used for the code
+  commentstyle=\itshape\color{gray},
+  breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  extendedchars=true,              % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  %frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\bfseries,       % keyword style
+  numbers=none,                    % where to put the line-numbers; possible values are (none, left, right)
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+  xleftmargin=1.5em,
+  belowskip=0pt,
+  floatplacement={!htb},
+  captionpos=b,
+  moredelim={[is][\uwave]{__}{__}}
+}
+
+\lstdefinestyle{numbersnippet}{
+  numbers=left,numberstyle=\footnotesize\ttfamily\color{gray},
+  xleftmargin=20pt,
+  framexleftmargin=22pt,
+}
+
+\lstdefinestyle{framedcode}{
+  % float,
+  floatplacement={!htbp},captionpos=b,
+  frame=lines,xleftmargin=8pt,xrightmargin=8pt,
+  numbers=left,numberstyle=\footnotesize\ttfamily\color{gray},
+  aboveskip=1.5em,
+  xleftmargin=27pt,
+  framexleftmargin=22pt,
+}
+\lstnewenvironment{viperSnippet}{%
+    \lstset{language=Viper,mathescape}}{}
+
+\lstnewenvironment{alloySnippet}{%
+    \lstset{language=Alloy,mathescape}}{}
+
+\lstnewenvironment{alloyCode}[1][]{%
+    \lstset{language=Alloy,style=framedcode,#1}}{}
+
+\lstnewenvironment{viperCode}[1][]{%
+    \lstset{language=Viper,style=framedcode,#1}}{}
+
+\newcommand{\viper}[1]{\lstinline[language=Viper]{#1}}
+\newcommand{\alloy}[1]{\lstinline[language=Alloy]{#1}}
+
+\newcommand{\cod}[1]{\texttt{\textbf{#1}}}
+\newcommand{\tr}[1]{\textsf{translate}(#1)}
+
+\newenvironment{nsflalign*}
+ {\setlength{\abovedisplayskip}{0pt}\setlength{\belowdisplayskip}{0pt}%
+  \csname flalign*\endcsname}
+ {\csname endflalign*\endcsname\ignorespacesafterend}
+
+% \lstnewenvironment{sil}[1][]{%
+%     \lstset{language=sil,
+%         floatplacement={tbp},captionpos=b,
+%         frame=lines,xleftmargin=8pt,xrightmargin=8pt,#1}}{}
+% \newcommand{\silfile}[1]{
+%   \lstinputlisting[language=sil,%
+%     frame=lines,xleftmargin=8pt,xrightmargin=8pt,columns=fixed]{#1}
+% }
+% \def\inlinesil{%
+%     \lstinline[language=sil,basicstyle=\ttfamily\small,columns=fixed]}
+
+% \lstnewenvironment{code}[1][]%
+% {
+%    \noindent
+%    \minipage{\linewidth}
+%    \vspace{0.5\baselineskip}
+%    \lstset{#1}}
+% {\endminipage}
+
+% \setlength{\abovecaptionskip}{0pt plus 2pt} % Chosen fairly arbitrarily
+
+% \DeclareCaptionFormat{tabcap}{\small \textbf{#1#2}#3}
+% \captionsetup[table]{format=tabcap}
+
+% \captionsetup{format=bf-figcap,labelfont=bf}
+\setkomafont{captionlabel}{\bfseries \small}
+\setkomafont{caption}{\small}
+
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{rotating}
+
+\usepackage{layout}
+\usepackage{geometry}
+
+\usepackage{pdfpages}
+
+% To fix some boxes going over the margins (e.g. inline code)
+\setlength\emergencystretch{\hsize}
+
+\makeatletter
+\captionsetup{margin=1em,
+              labelsep=colon,
+              format=hang,
+              indention=-3em,
+              parskip=5pt}
+
+\AtBeginDocument{%
+\renewcommand*\figurename{Figure}
+\renewcommand*\tablename{Table}
+}
+\AtBeginDocument{%
+\renewcommand*\listfigurename{List of Figures}
+\renewcommand*\listtablename{List of Tables}
+}
+\makeatother
+
+\begin{document}
+
+\newgeometry{margin=1.5in}
+\begin{titlepage}
+  \centering \itshape
+  \vspace*{6em}{
+    {\Huge Visual Debugging for \\ Symbolic Execution\par}
+  }
+
+  \vspace*{1em}{\Large Master's Thesis}\par
+  16 September 2018\par
+
+  \vspace*{4em}{\huge Alessio Aurecchia \\
+  \small \upshape \url{aalessio@student.ethz.ch}}\par
+
+  \vspace*{2em}{\large supervised by \\
+  \Large \itshape Arshavir Ter-Gabrielyan}
+
+  \vspace*{20em}{
+  \normalsize \upshape Chair of Programming Methodology\\
+  Department of Computer Science\\
+  ETH Zürich}
+
+\end{titlepage}
+\restoregeometry
+
+\include{src/abstract}
+
+{
+\setcounter{tocdepth}{2}
+\tableofcontents
+}
+
+\bibliographystyle{unsrtnat}
+\bibliography{references.bib}
+
+\includepdf[pages=-]{declaration_of_originality.pdf}
+
+\end{document}

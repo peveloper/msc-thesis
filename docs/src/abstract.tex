@@ -1,0 +1,33 @@
+\addchap*{\centering Abstract}
+
+In recent years, tools for program verification have made significant progress
+and are becoming more widely used. Yet, they still lack effective facilities to
+allow investigating and understanding verification errors, especially when the
+input program makes use of more advanced language features, such as quantified
+permissions in Viper.
+
+We think the most effective way to help a user in identifying the source of
+a verification error is by employing a visual debugging approach, therefore we
+want to provide a technique to automatically produce small, visual
+counterexamples based on the information provided by a symbolic execution
+engine.
+
+We conducted a feasibility study to understand whether we could effectively
+generate counterexamples via bounded modeling with Alloy, a language and
+analyser for software modeling. The main idea behind this methodology is that
+Alloy, because it performs a bounded search, is not affected by the problems
+involving quantifier instantiation, and is therefore able to provide complete
+concrete models in situations where the SMT solver would not.
+
+In our technique, we encode the information about a symbolic execution state
+into a model and use Alloy to generate instances of it. These instances
+can then be used to build a visual diagram of the program's state. When the
+state being modeled is one where a verification error occurred, and we
+additionally encode the last failed query performed to the SMT solver, then the
+instances Alloy generates are counterexamples to the failed verification.
+
+As part of our feasibility study, we have implemented a subset of the technique
+described in this thesis into a tool, integrated with the Viper IDE. This proof
+of concept for a debugger demonstrates that our approach for visualizing
+counterexamples to verification failures in the context of symbolic execution is
+a feasible one and is worth exploring in more detail.

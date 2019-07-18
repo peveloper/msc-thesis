@@ -28,6 +28,7 @@ class AdudumpCapture:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         nbsr = NBSR(self.__process.stdout)
+        print('exiting log..')
 
         while True:
             output = nbsr.readline(0.1)
@@ -37,6 +38,7 @@ class AdudumpCapture:
             self.__log_file.flush()
 
         # self.__process.kill()
+        # self.__kill_adudump()
         self.__log_file.close()
         return self
 

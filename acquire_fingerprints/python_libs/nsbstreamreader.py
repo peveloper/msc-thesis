@@ -19,6 +19,7 @@ class NonBlockingStreamReader:
 
             while True:
                 line = stream.readline()
+                # print(line)
                 if line:
                     queue.put(line)
                 else:

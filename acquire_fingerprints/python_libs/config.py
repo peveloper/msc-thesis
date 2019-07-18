@@ -6,9 +6,10 @@ class StaticConfig:
     def __init__(self):
         self.root_dir = os.path.abspath(os.path.dirname("."))
 
-        self.capture_duration = 12
+        self.capture_duration = 120
         self.wait_after_throughput_adjustment = 20
-        self.throughputs = [300, 450, 600, 800, 1200, 2000, 3500, 4800, 6500, 10000]
+        # self.throughputs = [800, 1000, 2000, 3500, 4000, 5000, 10000]
+        self.throughputs = [800, 1200, 2000, 3500, 4200, 4800, 5500, 6500, 7050, 10000, 15000, 20000]
         # self.throughputs = [50000]
 
         self.adudump_dir = self.root_dir + "/" + "tools/adudump"
@@ -20,8 +21,9 @@ class StaticConfig:
         self.screenshots_dir = self.root_dir + "/" + "screenshots"
         self.titles_dir = self.root_dir + "/" + "netflix_titles"
         self.extensions_dir = self.root_dir + "/" + "tools"
+        self.netflix_extension_path = self.root_dir + "/" + "tools/Netflix-1080p_v1.13.crx"
 
-        self.firefox_profile = "/home/peveloper/.mozilla/firefox/g5b7l3vb.test"
+        self.firefox_profile = self.root_dir + "/firefox_profile/cuyp2h9p.netflix"
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"
         self.selected_genres = [
@@ -31,9 +33,9 @@ class StaticConfig:
             'Documentaries',
             'Movies for ages 8 to 10'
         ]
-        self.movies_per_genre = 5
+        # self.movies_per_genre = 5
 
-        self.speedup = 10.0
+        self.speedup = 1.0
 
         self.local_ip = "192.168.0.157/24"
         self.network_device = "enp3s0"
@@ -49,7 +51,6 @@ class Inventory:
         self.genres = set()
         for id in self.movies_by_id.keys():
             self.genres.add(self.movies_by_id[id])
-        print(self.genres)
         return 
 
     def get_selection_of_movies_by_genre(self):
@@ -58,7 +59,7 @@ class Inventory:
         self.selected_genres = self.config.selected_genres 
 
         for genre in self.selected_genres:
-            for x in range(0, self.config.movies_per_genre):
+            for x in range(0, len(self.movies_by_genre[genre])):
                 self.movies_selection.append(self.movies_by_genre[genre][x])
 
         return self.movies_selection

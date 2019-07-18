@@ -30,7 +30,7 @@ class NetflixBrowser:
     __cookies = None
     __chrome = None
     # Change this parameter if autoplay is not set
-    __is_playing = True
+    # __is_playing = True
     __is_page_loaded = False
 
 
@@ -62,26 +62,34 @@ class NetflixBrowser:
         # use the test video URl to try to login
         video_url = self.__get_video_url(inventory.test_video)
 
-        firefox_options = Options()
-        firefox_options.headless = True
-        firefox_options.add_argument("-devtools")
-        firefox_options.add_argument(log.level)
+        options = webdriver.ChromeOptions()
+        options.add_extension(config.netflix_extension_path)
+        # options.add_argument('headless')
 
-        firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
-        firefox_profile.set_preference("browser.link.open_newwindow", 1)
+        self.__firefox = webdriver.Chrome(chrome_options=options)
+
+
+
+        # firefox_options = Options()
+        # firefox_options.headless = True
+        # firefox_options.add_argument("-devtools")
+        # firefox_options.add_argument(log.level)
+
+        # firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
+        # firefox_profile.set_preference("browser.link.open_newwindow", 1)
         # firefox_profile.set_preference("devtools.toolbox.selectedTool", "netmonitor")
 
-        self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
+        # self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
 
         # remember to include .xpi at the end of your file names 
-        extensions = [
-            '{7be2ba16-0f1e-4d93-9ebc-5164397477a9}.xpi',
-            '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
+        # extensions = [
+            # '{7be2ba16-0f1e-4d93-9ebc-5164397477a9}.xpi',
+            # '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
             # 'har_export_trigger-0.6.1-an+fx.xpi'
-        ]
+        # ]
 
-        for extension in extensions:
-            self.__firefox.install_addon(config.extensions_dir + "/" + extension, temporary=True)
+        # for extension in extensions:
+            # self.__firefox.install_addon(config.extensions_dir + "/" + extension, temporary=True)
         
         self.__firefox.get(video_url)
 
@@ -97,7 +105,10 @@ class NetflixBrowser:
             # login button found, so we need to perform a login
             link = login_link.get_attribute("href")
 
-            self.__firefox.get(link)
+            try:
+                self.__firefox.get(link)
+            except:
+                return False
 
             WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
 
@@ -114,7 +125,10 @@ class NetflixBrowser:
             # submit the form
             password_field.submit()
 
-            WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
+            try:
+                WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
+            except:
+                return False
 
             # click on the profile to be used
             self.__firefox.get("https://www.netflix.com/SwitchProfile?tkn=" + self.__credentials["netflix"]["profile"])
@@ -133,6 +147,8 @@ class NetflixBrowser:
         current_url = self.__firefox.current_url
 
         print("Loading page, this may take a while ...")
+
+        self.__firefox.save_screenshot('pippo.png')
 
         self.__firefox.get(video_url)
 
@@ -157,27 +173,91 @@ class NetflixBrowser:
         while not self.__is_page_loaded:
             self.__is_page_loaded = self.__get_page_status()
 
-        actions = ActionChains(self.__firefox)
+        # actions = ActionChains(self.__firefox)
 
-        times = int(config.speedup - 1.0) * 10
+        # times = int(config.speedup - 1.0) * 10
         # speedup the playback
-        for i in range(0, times):
-            actions.send_keys("d").perform()
+        # for i in range(0, times):
+            # actions.send_keys("d").perform()
 
-        self.__rewind()
-        self.__wait_buffering()
-        self.__seek_video()
-        self.__wait_buffering()
+        if not self.__rewind():
+            return False
+        # if not self.__wait_buffering():
+            # return False
+        # if not self.__seek_video():
+            # return False
+        # if not self.__wait_buffering():
+            # return False
 
-        time.sleep(config.capture_duration)
+        if not self.__stop_playback():
+            return False
 
-        self.__toggle_video_playback(False)
-        # self.__get_har(netflix_id, rate)
+        # time.sleep(int(config.capture_duration / config.speedup))
+
+        if not self.__toggle_video_playback():
+            return False
+        if not self.__prevent_more_requests():
+            return False
+        # if not self.__get_har(netflix_id, rate):
+            # return False
 
         self.__is_page_loaded = False
-        self.__is_playing = True
+        print('DONE')
 
         return True
+
+    def __get_session_summary(self):
+
+        with open('session_summary.js', 'r') as file:
+            js_script = file.read()
+
+        try:
+            summary =  self.__firefox.execute_script(js_script)
+            print(summary)
+        except:
+            return False
+
+        print(summary)
+        
+        return True
+
+    def __stop_playback(self):
+
+        with open('stop_video.js', 'r') as file:
+            js_script = file.read()
+
+        buffered = 0
+        init = -1
+        try:
+            while buffered < 300000:
+                buffered = self.__firefox.execute_script(js_script)
+                # if buffered > 0 and init == -1:
+                    # init=time.time()
+
+                print('Buffered %d / 300000' % buffered)
+        except:
+            return False
+
+        print(init)
+        
+        return True
+
+
+    def __prevent_more_requests(self):
+        """
+        calls prevent_more_requests.js, block every send() method
+        """
+
+        with open('prevent_more_requests.js', 'r') as file:
+            js_script = file.read()
+
+        try:
+            self.__firefox.execute_script(js_script)
+        except:
+            return False
+
+        return True
+
 
 
     def __get_har(self, netflix_id: int, rate: int) -> Optional[bool]:
@@ -191,7 +271,11 @@ class NetflixBrowser:
         with open('get_har.js', 'r') as file:
             js_script = file.read()
 
-        content = self.__firefox.execute_script(js_script)
+        try:
+            content = self.__firefox.execute_script(js_script)
+        except:
+            return False
+
         filename = str(netflix_id) + "_" + str(rate) + ".har"
 
         packets = content['entries']
@@ -227,7 +311,7 @@ class NetflixBrowser:
 
 
 
-    def __rewind(self) -> Optional[int]:
+    def __rewind(self) -> Optional[bool]:
         """
         calls rewind.js that rewinds the video
 
@@ -238,8 +322,12 @@ class NetflixBrowser:
         with open('rewind.js', 'r') as file:
             js_script = file.read()
 
-        return self.__firefox.execute_script(js_script)
+        try:
+            self.__firefox.execute_script(js_script)
+        except:
+            return False
 
+        return True 
 
 
     def __wait_buffering(self):
@@ -252,12 +340,16 @@ class NetflixBrowser:
             js_script = file.read()
 
         print('Buffering ...')
-        while self.__firefox.execute_script(js_script) is not None:
-            print('...')
-            time.sleep(1)
+        try:
+            while self.__firefox.execute_script(js_script) is not None:
+                print('...')
+                time.sleep(1)
+        except:
+            return False
+
         print('\n')
             
-        return
+        return True
 
 
     def __seek_video(self) -> Optional[int]:
@@ -271,29 +363,34 @@ class NetflixBrowser:
         with open('seek_video.js', 'r') as file:
             js_script = file.read()
 
-        return self.__firefox.execute_script(js_script)
+
+        try:
+            self.__firefox.execute_script(js_script)
+            return True
+        except:
+            return False
 
 
-    def __toggle_video_playback(self, play: bool) -> Optional[bool]:
+
+    def __toggle_video_playback(self) -> Optional[bool]:
         """
         calls either play.js or pause.js 
 
         :param play: True for play, False for pause
-        :return True if playing, False otherwise
+        :return True if succesfull
         """
 
-        if play:
-            filename = 'play_video.js'
-            print('Starting playback ...')
-        else:
-            filename = 'pause_video.js'
-            print('Pausing playback ...')
+        filename = 'pause_video.js'
 
+        print('Starting playback ...')
         with open(filename, 'r') as file:
             js_script = file.read()
-        self.__is_playing = self.__firefox.execute_script(js_script)
+        try:
+            self.__firefox.execute_script(js_script)
+        except:
+            return False
 
-        return self.__is_playing
+        return True
 
     def __get_page_status(self) -> Optional[bool]:
         """
@@ -308,7 +405,11 @@ class NetflixBrowser:
         print('Loading Netflix video player ...')
         while not self.__is_page_loaded:
             # js boolean gets casted into python's bool
-            self.__is_page_loaded = self.__firefox.execute_script(js_script)
+            try:
+                self.__is_page_loaded = self.__firefox.execute_script(js_script)
+            except:
+                return False
+
             time.sleep(1)
 
         print('Player is ready!')
