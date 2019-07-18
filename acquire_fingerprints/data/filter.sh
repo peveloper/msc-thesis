@@ -32,7 +32,7 @@ for record in *.dat; do
     #overhead=$(($tls+$http))
     echo $rec_time
 
-    awk -v speedup="${speedup}" '{if(c++>0) {diff+=$1-_n; printf("%.5f\t%.5f\n", diff, $2)}; {_n=$1}}' $record > bytespec.tmp
+    awk -v speedup="${speedup}" '{if(c++>10) {diff+=$1-_n; printf("%.5f\t%.5f\n", diff, $2)}; {_n=$1}}' $record > bytespec.tmp
     measured_bitrate=$(awk '{sum+=($2-overhead)}END{printf("%.5f", ((sum / NR) * 8) / 4)}' $record)
     #measured_bitrate=$(awk -v elapsed="${rec_time}" '{sum+=$1}END{printf("%.5f", (sum * 1e-9) / (elapsed * 0.0075)* 1e3)}' bytespec.tmp)
     #awk '{time+=$1; size+=$2}{if(time > 4) print time, size; time=$1me}' bytespec.tmp
