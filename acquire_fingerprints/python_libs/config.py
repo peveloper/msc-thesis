@@ -9,8 +9,8 @@ class StaticConfig:
         self.capture_duration = 120
         self.wait_after_throughput_adjustment = 20
         # self.throughputs = [800, 1000, 2000, 3500, 4000, 5000, 10000]
-        # self.throughputs = [800, 1200, 2000, 3500, 4200, 4800, 5500, 6500, 7050, 10000, 15000, 20000]
-        self.throughputs = [15000, 20000]
+        self.throughputs = [800, 1200, 2000, 3500, 4200, 4800, 5500, 6500, 7050, 10000, 15000, 20000]
+        # self.throughputs = [15000, 20000]
 
         self.adudump_dir = self.root_dir + "/" + "tools/adudump"
         self.config_dir = self.root_dir + "/" + "config"

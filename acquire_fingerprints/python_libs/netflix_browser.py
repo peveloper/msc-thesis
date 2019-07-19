@@ -148,8 +148,6 @@ class NetflixBrowser:
 
         print("Loading page, this may take a while ...")
 
-        self.__firefox.save_screenshot('pippo.png')
-
         self.__firefox.get(video_url)
 
         try:
