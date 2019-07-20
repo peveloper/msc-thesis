@@ -5,9 +5,11 @@ import matplotlib
 matplotlib.use('GTK3Agg',warn=False, force=True)
 import matplotlib.pyplot as plt
 
-files = ['data/1179080_2000.dat', 'data/1179080_3500.dat',
+files = ['data/1179080_800.dat', 'data/1179080_1200.dat',
+        'data/1179080_2000.dat', 'data/1179080_3500.dat',
         'data/1179080_4200.dat', 'data/1179080_6500.dat',
         'data/1179080_7050.dat', 'data/1179080_10000.dat',
+        'data/1179080_15000.dat', 'data/1179080_20000.dat',
         'data/81113921_2000.dat', 'data/81113921_3500.dat',
         'data/81113921_4200.dat', 'data/81113921_6500.dat',
         'data/81113921_7050.dat', 'data/81113921_10000.dat']
@@ -15,7 +17,7 @@ files = ['data/1179080_2000.dat', 'data/1179080_3500.dat',
 Xs = []
 Ys = []
 
-for i,file in enumerate(files[:4]):
+for i,file in enumerate(files[:10]):
     bitrate = int(file.split('_')[-1].split('.')[0])
     arr = np.loadtxt(file, delimiter='\t', usecols=1)
     arr =(arr - np.mean(arr)) / (10000)
@@ -39,7 +41,8 @@ for i, F in enumerate(Ys):
     ax.plot(F, label=i)
     ax.legend()
     
-plt.show()
+# plt.show()
+fig.savefig('agg.png')
 # plt.plot(scipy.signal.correlate(Ys[4], Ys[5], mode='same'))
 # plt.show()
 # plt.plot(scipy.signal.correlate(Ys[5], Ys[4], mode='same'))
