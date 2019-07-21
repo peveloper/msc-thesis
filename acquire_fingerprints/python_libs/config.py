@@ -10,7 +10,7 @@ class StaticConfig:
         self.wait_after_throughput_adjustment = 20
         # self.throughputs = [800, 1000, 2000, 3500, 4000, 5000, 10000]
         # self.throughputs = [800, 1200, 2000, 3500, 4200, 4800, 5500, 6500, 7050, 10000, 15000, 20000]
-        self.throughputs = [20000]
+        self.throughputs = [4000]
 
         self.adudump_dir = self.root_dir + "/" + "tools/adudump"
         self.config_dir = self.root_dir + "/" + "config"
@@ -28,10 +28,11 @@ class StaticConfig:
         self.cookie_file_path = self.temp_dir + "/" + "cookies.pkl"
         self.selected_genres = [
             # 'Comedies',
-            'Thrillers',
-            'Sci-Fi & Fantasy',
-            'Documentaries',
-            'Family Animation'
+            # 'Thrillers',
+            # 'Sci-Fi & Fantasy',
+            # 'Documentaries',
+            # 'Family Animation'
+            'Romantic Movies'
         ]
         self.movies_per_genre = 10
 

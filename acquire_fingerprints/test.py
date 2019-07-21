@@ -20,11 +20,13 @@ Ys = []
 for i,file in enumerate(files[:10]):
     bitrate = int(file.split('_')[-1].split('.')[0])
     arr = np.loadtxt(file, delimiter='\t', usecols=1)
-    arr =(arr - np.mean(arr)) / (10000)
+    arr =(arr - np.mean(arr)) / (100000)
     plt.plot(arr)
     plt.show()
     # print(arr)
-    w = int(0.15 * len(arr))
+    w = int(0.2 * len(arr))
+    if len(arr) > 200:
+        w = int(0.5 * len(arr))
     if w % 2 == 0:
         w+=1
     arr = savgol_filter(arr, w, 2)
@@ -37,9 +39,16 @@ for i,file in enumerate(files[:10]):
     # print(arr)
 
 fig, ax = plt.subplots()
+toplot=[]
 for i, F in enumerate(Ys):
-    ax.plot(F, label=i)
-    ax.legend()
+    toplot.append((F))
+print(toplot)
+Y = np.mean(np.stack(toplot, axis=0), axis=1)
+
+print(Y)
+print(Y.shape)
+ax.plot(Y, label='Y')
+ax.legend()
     
 # plt.show()
 fig.savefig('agg.png')
@@ -59,16 +68,7 @@ fig.savefig('agg.png')
 
 # print(np.correlate(Ys[0], Ys[1], mode='full'))
 
-# for filename in files:
-    # y = []
-    # with open(filename, 'r') as f:
-        # lines = f.readlines()
-
-        # for line in lines:
-            # y.append(line.split()[-1])
-
-    # print(y)
-
+# for y in Ys:
     # N = len(y)
     # T = 2 * N
     # x = np.linspace(0.0, N*T, N)
@@ -83,7 +83,7 @@ fig.savefig('agg.png')
     # F[20] = yf[20]
     # F[25] = yf[25]
     # F[26] = yf[26]
-    # F[30] = yf[30]
+    # F[29] = yf[29]
     
     # xf = np.linspace(0.0, 1.0/(2.0*T), N/2)
     # z = scipy.fftpack.ifft(F)

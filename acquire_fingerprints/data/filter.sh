@@ -36,6 +36,7 @@ for record in *.dat; do
     measured_bitrate=$(awk '{sum+=($2-overhead)}END{printf("%d", ((sum / NR) * 8) / 4 / 1e3)}' $record)
     #measured_bitrate=$(awk -v elapsed="${rec_time}" '{sum+=$1}END{printf("%.5f", (sum * 1e-9) / (elapsed * 0.0075)* 1e3)}' bytespec.tmp)
     #awk '{time+=$1; size+=$2}{if(time > 4) print time, size; time=$1me}' bytespec.tmp
+    #bitrate=$(awk -v bitrate="$measured_bitrate" '{print bitrate / 1e3}')
     printf "%d\t%.3f\n" $tp $measured_bitrate >> $filename.bl
     rm -rf bytespec.tmp
     printf "%d\t%d\t" $id $measured_bitrate >> db.dat
