@@ -33,14 +33,13 @@ for record in *.dat; do
     echo $rec_time
 
     awk -v speedup="${speedup}" '{if(c++>10) {diff+=$1-_n; printf("%.5f\t%.5f\n", diff, $2)}; {_n=$1}}' $record > bytespec.tmp
-    measured_bitrate=$(awk '{sum+=($2-overhead)}END{printf("%.5f", ((sum / NR) * 8) / 4)}' $record)
+    measured_bitrate=$(awk '{sum+=($2-overhead)}END{printf("%d", ((sum / NR) * 8) / 4 / 1e3)}' $record)
     #measured_bitrate=$(awk -v elapsed="${rec_time}" '{sum+=$1}END{printf("%.5f", (sum * 1e-9) / (elapsed * 0.0075)* 1e3)}' bytespec.tmp)
     #awk '{time+=$1; size+=$2}{if(time > 4) print time, size; time=$1me}' bytespec.tmp
     printf "%d\t%.3f\n" $tp $measured_bitrate >> $filename.bl
     rm -rf bytespec.tmp
-    printf "%d\t%d\n" $id $tp >> db.dat
-    awk '{ print $2}' $record >> db.dat
-
+    printf "%d\t%d\t" $id $measured_bitrate >> db.dat
+    awk '{ printf("%d,", $2)}END{printf("%d\n", $2)}' $record >> db.dat
 done
 
 ids=($(ls | grep -e '^[0-9]*_[0-9]*.dat$' | cut -d '_' -f1 | sort -u))
