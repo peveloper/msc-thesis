@@ -25,7 +25,6 @@ for k=1:length(titles)
     disp(sorted);
     figure
     errs = [];
-    tot = [];
     for j=1:length(sorted)
         filename = char(sorted(j));
         disp(filename);
@@ -38,7 +37,7 @@ for k=1:length(titles)
         orig = y;
         y = normalize(y);
         
-        win_size = 20;
+        win_size = 9;
         num_win = numel(y) - win_size;
 %         disp(num_win);
         err = [];
@@ -78,10 +77,10 @@ for k=1:length(titles)
 %         plot(err.');
 %         plot(err.');
         plot(means.');
-        tot = [tot, mean(means)];
-        xlabel('Windows');
+        xlabel(windows);
+        ylabel('Normalized mean in xth window
         disp(size(bandwidths));
-        title(sprintf('Normalized rolling mean (win_size=%d), of %d windows at %s kbps', win_size, num_win, char(bandwidths(1,j))), 'Interpreter', 'none');
+        title(sprintf('Normalized rolling mean (win_size=%d), of %d windows at %s kbps', win_size, num_win, char(bandwidths(1,j))));
 %         disp(err);
 %         disp(err);
 %         disp(y);
@@ -90,7 +89,6 @@ for k=1:length(titles)
            
     end
     if(k == 1)
-        disp(tot);
         break;
     end
 end
