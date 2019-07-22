@@ -6,8 +6,9 @@ set multiplot layout words(files),1 rowsfirst
 set title sprintf("Fingerprints at various throughputs of ID: %s", filename)
 set key outside
 set key right top
-set xlabel "Playing time (s)"
+set xlabel "Segments"
 set ylabel "Size of ADUs (bytes)"
+set format y "%.1s%c"
 do for [i=1:words(files)] {
     file = word(files, i)
     plot file with impulses lt i title file[strstrt(file, "_") + 1:strstrt(file, ".") - 1].' kbps' 

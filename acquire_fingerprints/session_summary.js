@@ -6,7 +6,7 @@ function get_session_summary() {
     
     var summary = player.getSessionSummary()
     var avg_vbr = summary.init_vbr
-    while(summary.bufferedTime <= 300000) {
+    while(summary.bufferedTime <= 900000) {
 
         summary = player.getSessionSummary();
         avg_vbr = (summary.init_vbr + avg_vbr) / 2;

@@ -10,7 +10,7 @@ class StaticConfig:
         self.wait_after_throughput_adjustment = 20
         # self.throughputs = [800, 1000, 2000, 3500, 4000, 5000, 10000]
         # self.throughputs = [800, 1200, 2000, 3500, 4200, 4800, 5500, 6500, 7050, 10000, 15000, 20000]
-        self.throughputs = [4000]
+        self.throughputs = [500, 1000, 5000]
 
         self.adudump_dir = self.root_dir + "/" + "tools/adudump"
         self.config_dir = self.root_dir + "/" + "config"
@@ -22,6 +22,7 @@ class StaticConfig:
         self.titles_dir = self.root_dir + "/" + "netflix_titles"
         self.extensions_dir = self.root_dir + "/" + "tools"
         self.netflix_extension_path = self.root_dir + "/" + "tools/Netflix-1080p_v1.13.crx"
+        self.speedup_extension_path = self.root_dir + "/" + "tools/Video-Speed-Controller-Chrome-Web-Mağazası_v0.5.6.crx"
 
         self.firefox_profile = self.root_dir + "/firefox_profile/cuyp2h9p.netflix"
         self.credentials_file_path = self.config_dir + "/" + "credentials.json"
@@ -36,7 +37,7 @@ class StaticConfig:
         ]
         self.movies_per_genre = 10
 
-        self.speedup = 1.0
+        self.speedup = 10.0
 
         self.local_ip = "192.168.0.157/24"
         self.network_device = "enp3s0"

@@ -64,6 +64,7 @@ class NetflixBrowser:
 
         options = webdriver.ChromeOptions()
         options.add_extension(config.netflix_extension_path)
+        options.add_extension(config.speedup_extension_path)
         # options.add_argument('headless')
 
         self.__firefox = webdriver.Chrome(chrome_options=options)
@@ -171,7 +172,7 @@ class NetflixBrowser:
         while not self.__is_page_loaded:
             self.__is_page_loaded = self.__get_page_status()
 
-        # actions = ActionChains(self.__firefox)
+        actions = ActionChains(self.__firefox)
 
         # times = int(config.speedup - 1.0) * 10
         # speedup the playback
@@ -180,6 +181,10 @@ class NetflixBrowser:
 
         if not self.__rewind():
             return False
+
+
+        actions.send_keys("r").perform()
+        
         # if not self.__wait_buffering():
             # return False
         # if not self.__seek_video():
@@ -227,12 +232,12 @@ class NetflixBrowser:
         buffered = 0
         init = -1
         try:
-            while buffered < 300000:
+            while buffered < 900000:
                 buffered = self.__firefox.execute_script(js_script)
                 # if buffered > 0 and init == -1:
                     # init=time.time()
 
-                print('Buffered %d / 300000' % buffered)
+                print('Buffered %d / 900000' % buffered)
         except:
             return False
 
