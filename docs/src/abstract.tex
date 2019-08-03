@@ -1,3 +1,28 @@
 \addchap*{\centering Abstract}
 
+In the last recent years streaming services such as Netflix, Youtube, Amazon
+Prime Video, Hulu and others, have become the main source for video content
+delivery to the public. With the effort of private companies and of the AOM
+consortium, various coding formats and streaming techinques have been refined
+and have gain popularity. \textit{Adaptive Bitrate Streaming}, between others,
+enables high quality streaming of media content over HTTP, and represents
+nowadays the industry's standard. 
 
+DASH \textit{Dynamic Adaptive Streaming over HTTP} is an instance of Adaptive
+Bitrate Streaming originally developed by MPEG. In DASH each media file gets
+encoded at multiple bitrates, which are then partitioned into smaller segments
+and delivered to the user over HTTP.  Netflix's use of DASH services is no
+mistery, indeed it is already five years that each title on Netflix sits with
+its own different bitrate copies on a CDN, waiting to be served to clients in a
+particular area of the planet. \cite{per-title-encoding}
+
+Despite a recent upgrade in Netflix infrastructure to provide HTTPS encryption
+of each video stream, research shows that the privacy of the end user is at
+risk, more precisely there exist techniques to identify the content the client
+is playing as Reed et Al. \cite{netflix-real-time} have shown. They make use of
+adudump \cite{adudump} a command live program that uses TCP sequence and ACKS
+to infer the sizes of application data unit \emph{ADUs} transferred over each
+TCP connection. Our approach is mainly based on their work, with few
+differences highlighted in Section X.
+
+%TODO refine it and add results
