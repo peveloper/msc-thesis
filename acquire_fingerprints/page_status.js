@@ -3,8 +3,8 @@ function get_player_status() {
     // Getting player id
     const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0];
     const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId);
-    
-    return player.loaded 
+
+    return player.loaded;
 } 
 
 return get_player_status();

@@ -266,28 +266,40 @@ int
 asciiPacketHandler()
 {
   segment seg;
-  char line[300], buf1[40], buf2[40];
+  char line[300], buf1[40], buf2[40], buf3[40];
   uint8_t a,b,c,d;
-  char *linep = &(line[0]), *buf1p = &(buf1[0]), *buf2p = &(buf2[0]);
+  char *linep = &(line[0]), *buf1p = &(buf1[0]), *buf2p = &(buf2[0]), *buf3p = &(buf3[0]);
+
 
   if (!fgets(line, 300, cfg.ascii_input)) {
     pkts.ascii_input_failure++;
     return 0;
   }
 
+
   // the timestamp
   buf1p = strsep(&linep, " ");
+  printf("%s\n", buf1p);
   buf2p = strsep(&buf1p, ".");
+  printf("%s\n", buf2p);
   seg.ts.tv_sec = strtoul(buf2p, NULL, 10);
   seg.ts.tv_usec = strtoul(buf1p, NULL, 10);
 
+
+
+  printf("%s\n", linep);
   // the first IP.port pair
+  buf3p = strsep(&linep, " ");
+  printf("%s\n", linep);
   buf1p = strsep(&linep, " ");
+  printf("%s\n", buf1p);
   buf2p = strsep(&buf1p, ".");
+  printf("%s\n", buf2p);
   a = strtoul(buf2p, NULL, 10);
   buf2p = strsep(&buf1p, ".");
   b = strtoul(buf2p, NULL, 10);
   buf2p = strsep(&buf1p, ".");
+  printf("DIO3\n");
   c = strtoul(buf2p, NULL, 10);
   buf2p = strsep(&buf1p, ".");
   d = strtoul(buf2p, NULL, 10);
@@ -295,12 +307,16 @@ asciiPacketHandler()
   seg.loc_port = strtoul(buf2p, NULL, 10);
   seg.loc_addr.s_addr = htonl((uint32_t)( a << 24 | b << 16 | c << 8 | d ));
 
+
+
   buf1p = strsep(&linep, " ");
   if (buf1p[0] == cfg.ascii_iface) {
     seg.dir = 1;
   } else {
     seg.dir = 0;
   }
+
+
 
   // the second IP.port pair
   buf1p = strsep(&linep, " ");
@@ -315,8 +331,12 @@ asciiPacketHandler()
   buf2p = strsep(&buf1p, ".");
   buf1p = strsep(&buf2p, ":");
   // converting address back to network order because we're using inet_ntoa().
+  //
+
   seg.rem_port = strtoul(buf1p, NULL, 10);
   seg.rem_addr.s_addr = htonl((uint32_t)( a << 24 | b << 16 | c << 8 | d ));
+
+
 
   // the flags: '.' for none, 'S' for SYN, 'F' for FIN, 'FP' for FIN|PSH, etc.
   // we'll set ACK later.
@@ -348,6 +368,8 @@ asciiPacketHandler()
     seg.payload = strtoul(buf2p, NULL, 10);
     buf1p = strsep(&linep, " ");
   }
+
+
 
   // the ack #.
   if (buf1p[0] == 'a') {

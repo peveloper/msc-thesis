@@ -6,13 +6,25 @@ mkdir plots
 #speedup=10.0
 tls=5075
 http=520
+overhead=$(($tls+$http))
+overhead=0
 
+c=0
 for file in ../log/*; do
     filename="${file##*/}"
     #awk '/^ADU/ && $5 ~ /^45*/ {if(c++>0 && $4=="<1" && $6>10000){sum+=$6;time_diff=$2-_n; cum_time+=time_diff; printf("%.11f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
-    awk '/^ADU/ && $5 ~ /^45*/ {if(c++>0 && $4=="<1" && $6>10000){cum_time+=1; printf("%.11f\t%s\n", cum_time, $6)}}' $file >> ./$filename.dat
+    awk '(/^ADU/ || /^INC/) && $5 ~ /^45*/ {if(c++>0 && $4=="<1" && $6>100000){cum_time+=1; printf("%s\n", $6)}}' $file > tmp
+    
+    awk -v overhead="${overhead}" '{printf("%d\t%d\n", NR, $1-overhead)}' tmp > ./$filename.dat
+
     gnuplot -e "file='${filename}.dat'" singleplot
+
+    if (( c++ > 24 ));
+    then
+        break
+    fi
 done
+
 
 for record in *.dat; do
     if [ $record = "db.dat" ]
@@ -44,6 +56,7 @@ for record in *.dat; do
     echo $br
     printf "%d\t%d\t" $id $br >> db.dat
     awk '{ printf("%d,", $2)}END{printf("%d\n", $2)}' $record >> db.dat
+
 done
 
 ids=($(ls | grep -e '^[0-9]*_[0-9]*.dat$' | cut -d '_' -f1 | sort -u))

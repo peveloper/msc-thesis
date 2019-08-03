@@ -4,7 +4,8 @@ function play_video() {
     const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0];
     const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId);
 
-    player.play()
+    XMLHttpRequest.prototype.send = window.orig;
+
     return true
     
 }

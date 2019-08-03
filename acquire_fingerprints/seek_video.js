@@ -4,8 +4,15 @@ function seek_video() {
     const playerSessionId = videoPlayer.getAllPlayerSessionIds()[0];
     const player = videoPlayer.getVideoPlayerBySessionId(playerSessionId);
 
-    player.seek(player.getCurrentTime() + 720000);
-    return player.getCurrentTime();
+    window.orig = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.send = function() {
+        return false;
+    }
+
+    player.seek(240000);
+
+    return true;
 }
 
 return seek_video();

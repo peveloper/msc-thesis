@@ -1,0 +1,1 @@
+sudo: ./adudump: command not found

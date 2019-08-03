@@ -4,6 +4,7 @@ import datetime
 import time
 import humanfriendly
 import subprocess
+import os
 
 from python_libs.config import StaticConfig
 from python_libs.config import Inventory
@@ -37,7 +38,8 @@ interface = config.network_device
 
 def capture_movie(browser, local_ip, interface, filename, video_id, throughput):
     finished = False
-    # initialize the adudump capture
+    # with open(config.log_dir + "/" + filename, "w+") as file:
+        # initialize the adudump capture
     with AdudumpCapture(local_ip, interface, filename) as capture:
 
         print(
@@ -46,11 +48,11 @@ def capture_movie(browser, local_ip, interface, filename, video_id, throughput):
         )
 
 
-        if browser.navigate(video_id, throughput):
+        if browser.navigate(video_id, throughput, capture):
             return True
-            # finished = True
-            # print('here')
-            # capture.__exit__()
+        # finished = True
+        # print('here')
+        # capture.__exit__()
 
     # if finished:
         # time.sleep(10)
@@ -82,6 +84,9 @@ def main():
 
                     while not capture_movie(browser, local_ip, interface, filename, video_id, throughput):
                         time.sleep(1)
+
+    os.system('sudo killall chromedriver')
+    os.system('sudo pkill -f \'.*chrome.*\'')
     return
 
 if __name__ == "__main__":
