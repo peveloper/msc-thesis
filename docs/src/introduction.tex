@@ -3,14 +3,14 @@
 According to the latest Cisco's VNI \cite{video-traffic-forecast}, video will
 account for 82\% of all IP traffic in Europe by 2021; moreover the overall IP
 traffic per person will triplicate from 13\emph{GB} to 35\emph{GB}. These
-forecast clearly picture the growth of the streaming industry, posing, at the
+forecasts clearly picture the growth of the streaming industry, posing, at the
 same time an important question on the present and future states of the final
 user's privacy.
 
 As shown by Reed et Al. \cite{netflix-real-time} anonimity of user's viewing
 activity is at risk. Not for the use that Netflix or other streaming services
 do of user's session data, but because of the risk of a man-in-the-middle
-attack \emph{MITM} by an \textit{evil} party. 
+attack \emph{MITM} carried by an \textit{evil} party. 
 
 In particular, they have shown how the adoption of HTTPS to protect video
 streams from Netflix \emph{CDN}s to user's end devices, does not hold against
@@ -18,7 +18,59 @@ passive traffic analysis.
 
 \section{Motivation}\label{sec:motivation}
 
-Our intent is to replicate the work of Reed et Al. and to observe if recent
-changes in Netflix infrastructure can guarantee anonimity of user's viewing
-activity.
+The goal of this project is to replicate part of the work conducted by Reed et
+Al. and to investigate the possibility of identifying a Netflix stream solely
+based on the observed average bandwidth. This, follows from the intuition that
+\emph{per-title-encoding} embeds the nature and the complexity of video frames
+in a unique way, that may reveal the identity of the content being streamed.
 
+\subsection{Per Title Encoding}\label{per-title-encoding}
+
+In December 2015 Netflix announced \cite{per-title-encoding} that it was
+introducing a new method to analyze the complexity of each title and find the
+best encoding recipe based on it. They integrated per-title-encoding in their
+content delivery pipeline to provide users better quality streams at a lower
+bandwidth. 
+
+%TODO TBF 
+
+\subsection{User's Privacy}\label{privacy}
+
+%TODO Present per-title-encoding, describe its advantages and how it works 
+
+%TODO add privacy concerns, explain who\why and how can collect/make use of 
+%this data. 
+
+\section{Related Work}\label{sec:related}
+
+%TODO add previous work section
+
+%TODO Reed et Al. 2017
+%TODO Saponas devices 2007
+%TODO Moser ETH BSc thesis 2018
+
+\section{Main Objective}\label{sec:objective}
+
+%TODO What is the goal of the project?
+
+\section{Structure of this Report}\label{sec:structure}
+
+%TODO briefly summarize how we want to develope our discourse during each chapter
+
+%TODO Chapter 1 - Introduction [THIS]
+%TODO Chapter 2 - End to End Attack Scenario 
+               %- Describe the attack scenario from the perspective of an ISP
+               %- Describe the infrastructure
+               %- Describe what kind of information the attacker is able to retrieve
+               %- Outlie the consequences of such an attack
+%TODO Chapter 3 - Approach
+               %- Present our version of the attack scenario
+               %- Describe the infrastructure
+               %- Present the data we have collected
+               %- Highlight the differences from our approach to Reed's et Al.
+               %- Explain how we can uniquely identify a movie / Explain how we make use of the features we collect
+%TODO Chapter 4 - Evaluation of the system
+               %- Explain Plots & result data
+%TODO Chapter 5 - Conclusion
+               %- Future Work
+               %- Acknowlegments
