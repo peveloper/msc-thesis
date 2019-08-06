@@ -10,7 +10,8 @@ user's privacy.
 As shown by Reed et Al. \cite{netflix-real-time} anonimity of user's viewing
 activity is at risk. Not for the use that Netflix or other streaming services
 do of user's session data, but because of the risk of a man-in-the-middle
-attack \emph{MITM} carried by an \textit{evil} party. 
+attack \emph{MITM} carried by an \textit{evil} party that has control over the
+flow of packets over a network. %TODO add references to the approach
 
 In particular, they have shown how the adoption of HTTPS to protect video
 streams from Netflix \emph{CDN}s to user's end devices, does not hold against
@@ -149,7 +150,7 @@ holding to a high-quality stream while maintainig or lowering the used
 bandwidth is key: the end user will get same or better quality then before, at
 a lower bandwidth.
 
-\begin{figure}[htb]
+\begin{figure}[!htb]
   \centering
   \includegraphics[width=0.9\columnwidth]{img/pertitlevsfixed.png}
   \caption{Difference between per-title vs. fixed bitrate ladders}
@@ -158,16 +159,66 @@ a lower bandwidth.
 
 \subsection{User's Privacy}\label{sec:privacy}
 
-%TODO add privacy concerns, explain who\why and how can collect/make use of 
-%this data. 
+As of 2018, data began the most valuable commodity on the planet
+\cite{data-value}, and with its value rising, society starts to question how to
+legislate to protect both industry's and user's rights.
+
+In 2016, Netflix announced the introduction of HTTPS to protect the content
+being streamed to users. With the addition of TLS on top of HTTP, Netflix aim,
+was to avoid the risk of eavesdropping on unsecure connections, protecting
+themselves and users from third-party applications and governments potentially
+collecting viewer's data and streaming habits.
+
+Avoiding deep packet inspection from potential eavesdropper certainly adds
+another layer of security, but given the narrow relationship between Netflix
+and ISPs, one might conclude that the chance that IP packets do not get
+inspected by ISPs (especially in the United States, after the reclassification
+of ISPs as Title I \emph{Information Services} \cite{net-neutrality}), is still
+a matter of mere trust given to the platform-provider relationship.
+
+Cases of user's data breaches as the Kanopy one \cite{kanopy}, are a testimony
+of how easy would be for an attacker to extract information to the point at
+which users could become identifiable by the solely information the platform
+was collecting in their internal log files. The content of which, include
+between others: timestamps, geo-location data, client-device informations and
+IP addresses. 
+
+The ability to cluster people based on just their video-streaming habits, poses
+a potential threat for how the data could be processed and used by parties with
+access to it. One could imagine how government agencies could easily get in
+possess of sensitive information about the nature of the content a particular
+user is interested about, or how ISPs could profit from selling data profiles
+to advertisement companies that in turn would exploit their information to
+improve per-user recommendation algorithms.
+
+Considering this trend, it is for us crucial to investigate how parties that
+can have access to transport-layer information, (more details in
+\Cref{sec:approach}), could exploit per-title encoding to identify video
+traffic. 
 
 \section{Related Work}\label{related}
 
-%TODO add previous work section
+As previously mentioned, our work is mainly insipired by Reed et Al.'s
+\cite{netflix-real-time} research paper, in which they presented a novel method
+to de-anonymize encrypted netflix stream in real-time with limited hardware
+requirements. Their system was able to identify a video using uniquely TCP/IP
+headers, by making use of \textbf{adudump}, a program built on top of
+\textbf{libpcap} \cite{libpcap}, a powerful C/C++ library for network traffic
+capture. They acquired for each video, metadata information with a tampering
+tool, and then matched adudump traces against with. The evaluation of their
+method revelaed that they could identify majority of videos by recording only
+20 minutes of traffic each.
 
-%TODO Reed et Al. 2017
-%TODO Saponas devices 2007
-%TODO Moser ETH BSc thesis 2018
+An earlier proof on how bandwidth analysis could reveal the content of
+ecnrypted traffic, was given by Saponas et Al. \cite{Saponas2007devices}, in
+their "SlingBox-Pro" case study, that exposed how, by recording network traffic
+and producing and combining different trace levels, they were able to identify
+98\% of 40 minutes video traces.
+
+Similar work has been conducted also by Moser \cite{moser}, who analyzed how
+bitrate ladders could uniquely embed the identity of Netflix titles. In his
+work he further studies the impact of the aggregation of each video's segment
+bandwidth on the overall accuracy of his system. 
 
 \section{Main Objective}\label{sec:objective}
 
