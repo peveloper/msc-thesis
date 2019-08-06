@@ -65,7 +65,7 @@ resolution (\Cref{tab:fixed-ladder}), with no visible artificats.
     5800                    &   $1920\times1080$ \\
     \hline
   \end{tabular}
-  \caption{Netflix original's Fixed Bitrate Ladder}
+  \caption{Netflix original's Fixed Bitrate Ladder.}
   %\end{center}
   \label{tab:fixed-ladder}
 \end{table}
@@ -153,7 +153,7 @@ a lower bandwidth.
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.9\columnwidth]{img/pertitlevsfixed.png}
-  \caption{Difference between per-title vs. fixed bitrate ladders}
+  \caption{Difference between per-title vs. fixed bitrate ladders.}
   \label{fig:new-vs-old-ladder}
 \end{figure}
 
@@ -222,13 +222,36 @@ bandwidth on the overall accuracy of his system.
 
 \section{Main Objective}\label{sec:objective}
 
-%TODO What is the goal of the project?
+The main goal of this project is to build a system that can manipulate network
+bandwidth and observe video traffic from Netflix, to verify the intuition that
+each title could be identified by its own bitrate ladder. 
+
+Furthermore we investigate and discuss possible countermeasures that streaming
+providers could adopt to preserve users privacy. A detailed explanation of our
+approach is presented in \Cref{sec:approach}.
 
 \section{Structure of this Report}\label{sec:structure}
+  
+In this section, we outline of the contents and the structure of this report.
 
-%TODO briefly summarize how we want to develope our discourse during each chapter
+Chapter 1 introduced our motivation behind the project, presented featured work
+that influenced and inspire our approach, and it outlined the goals we would
+like to ultimately achieve.
 
-%TODO Chapter 1 - Introduction [THIS]
+Chapter 2 presents the attack scenario from an ISP perspective, (the ISP acting
+as the adversary), the infrastructure needed to acquire the data, the nature of
+the information that could be infered, and the consequences that might arise.
+
+Chapter 3 shows our version of the attack, in a different context, but up to
+some extent, with similar conditions to the one depicted in Chapter 2. It also
+higlights the similiarities and differences from the featured approaches we followed.
+
+In Chapter 4 we evaluate our system, we present results, and discuss the
+relevance of such a method.
+
+Chapter 5 tries to summarize and draw conclusion based on the claims made at
+the beginning of the project.
+
 %TODO Chapter 2 - End to End Attack Scenario 
                %- Describe the attack scenario from the perspective of an ISP
                %- Describe the infrastructure
