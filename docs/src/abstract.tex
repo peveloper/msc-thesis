@@ -11,24 +11,25 @@ represents nowadays the industry's standard.
 DASH \textit{Dynamic Adaptive Streaming over HTTP} is an instance of Adaptive
 Bitrate Streaming originally developed by MPEG. In DASH each media file gets
 encoded at multiple bitrates, which are then partitioned into smaller segments
-and delivered to the user over HTTP.  Netflix's use of DASH services is no
-mistery, indeed it is already five years that each title on Netflix sits with
-its own different bitrate copies on a CDN, waiting to be served to clients in a
-particular area of the planet. \cite{per-title-encoding}
+and delivered to the user over HTTP. As of today, Netflix makes extensive use
+of DASH, by encoding each title in their catalogue at different quality levels,
+so that the user is served tailored-size content depending on network
+conditions, and its device capabiities \cite{per-title-encoding}.
 
-Reed et Al. \cite{netflix-real-time} have shown how, despite a recent upgrade
-in Netflix infrastructure to provide HTTPS encryption to video traffic, it is
-possible to recover unique fingerprints for each title, due to the adoption
-throughout the entire Netflix library, of \emph{per-title encoding}. They make
+DASH and \emph{variable-bitrate-encoding}, have proven to be leaking
+potentially harmful data. Reed et Al. \cite{netflix-real-time} have shown, how
+despite a recent upgrade in Netflix infrastructure to provide HTTPS encryption
+to video traffic, it is possible to recover unique fingerprints for each title,
+and to use them to match against captured traffic. In their study, they make
 use of adudump \cite{adudump} a command-line program that can run on passive
-TAP device \cite{tap} or on a live network interface, and uses TCP and ACKS
-sequences to infer the sizes of application data unit \emph{ADUs} transferred
-over each TCP connection. 
+TAP devices \cite{tap} or on a live network interface, and uses TCP and ACKs
+sequences to infer the size of application data units \emph{ADUs} transferred
+over each TCP connection in real time.
 
 Our approach reiterates parts of Reed et Al.'s work, but cannot rely on their
-every assumption and discovery, due to constant changes that Netflix is brining
-to their enconding and streaming algorithms. Moreover our intent is focused on
-finding out if, by analyzing coarse-grained traffic data, we are able to
-identify a video based on its \emph{bitrate-ladder}.
+every assumption and discovery, due to constant changes that Netflix is
+integrating into their enconding and streaming algorithms. Moreover our intent
+is focused on finding out if, by analyzing coarse-grained traffic data, we are
+able to identify a video based on its \emph{bitrate-ladder}.
 
-%TODO refine it and add results
+\todo{refine it and add results}

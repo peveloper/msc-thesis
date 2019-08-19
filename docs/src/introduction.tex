@@ -11,7 +11,7 @@ As shown by Reed et Al. \cite{netflix-real-time} anonimity of user's viewing
 activity is at risk. Not for the use that Netflix or other streaming services
 do of user's session data, but because of the risk of a man-in-the-middle
 attack \emph{MITM} carried by an \textit{evil} party that has control over the
-flow of packets over a network. %TODO add references to the approach
+flow of packets over a network.
 
 In particular, they have shown how the adoption of HTTPS to protect video
 streams from Netflix \emph{CDN}s to user's end devices, does not hold against
@@ -202,8 +202,8 @@ As previously mentioned, our work is mainly insipired by Reed et Al.'s
 \cite{netflix-real-time} research paper, in which they presented a novel method
 to de-anonymize encrypted netflix stream in real-time with limited hardware
 requirements. Their system was able to identify a video using uniquely TCP/IP
-headers, by making use of \textbf{adudump}, a program built on top of
-\textbf{libpcap} \cite{libpcap}, a powerful C/C++ library for network traffic
+headers, by making use of \texttt{adudump}, a program built on top of
+\emph{libpcap} \cite{libpcap}, a powerful C library for network traffic
 capture. They acquired for each video, metadata information with a tampering
 tool, and then matched adudump traces against with. The evaluation of their
 method revelaed that they could identify majority of videos by recording only
@@ -228,7 +228,7 @@ each title could be identified by its own bitrate ladder.
 
 Furthermore we investigate and discuss possible countermeasures that streaming
 providers could adopt to preserve users privacy. A detailed explanation of our
-approach is presented in \Cref{sec:approach}.
+approach is presented in \Cref{sec:approach}
 
 \section{Structure of this Report}\label{sec:structure}
   
@@ -251,7 +251,6 @@ relevance of such a method.
 
 Chapter 5 tries to summarize and draw conclusion based on the claims made at
 the beginning of the project.
-
 %TODO Chapter 2 - End to End Attack Scenario 
                %- Describe the attack scenario from the perspective of an ISP
                %- Describe the infrastructure
