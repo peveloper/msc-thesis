@@ -4,17 +4,20 @@ In the last recent years streaming services such as Netflix, Youtube, Amazon
 Prime Video, Hulu and others, have become the main source for video content
 delivery to the public. With the effort of private companies and of the AOM
 consortium \cite{aom}, various coding formats and streaming techinques have
-been refined and have gained popularity. \textit{Adaptive Bitrate Streaming},
-between others, enables high quality streaming of media content over HTTP, and
-represents nowadays the industry's standard. 
+been refined and have been vastely adopted in the industry.  \emph{Variable
+Bitrate Encoding} and \emph{Adaptive Bitrate Streaming}, between others, are
+two techniques that increasingly often get coupled together to improve high
+quality streaming of media content over HTTP.
 
-DASH \textit{Dynamic Adaptive Streaming over HTTP} is an instance of Adaptive
-Bitrate Streaming originally developed by MPEG. In DASH each media file gets
-encoded at multiple bitrates, which are then partitioned into smaller segments
-and delivered to the user over HTTP. As of today, Netflix makes extensive use
-of DASH, by encoding each title in their catalogue at different quality levels,
-so that the user is served tailored-size content depending on network
-conditions, and its device capabiities \cite{per-title-encoding}.
+Netflix relies on first encoding a title at a \emph{variable} bitrate, and
+streaming it using DASH \textit{Dynamic Adaptive Streaming over HTTP}, an
+instance of Adaptive Bitrate Streaming originally developed by MPEG. In DASH
+each media file gets encoded at multiple bitrates, which are then partitioned
+into smaller segments and delivered to the user over HTTP. As of today, Netflix
+makes extensive use of DASH, by encoding each title in their catalogue at
+different quality levels, so that the user is served tailored-size content
+depending on network conditions, and its device capabiities
+\cite{per-title-encoding}.
 
 DASH and \emph{variable-bitrate-encoding}, have proven to be leaking
 potentially harmful data. Reed et Al. \cite{netflix-real-time} have shown, how

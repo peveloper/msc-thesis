@@ -35,7 +35,7 @@ such attack.
 
 \section{Video Fingerprinting}
 
-Assuming that the ISP has no direct access to the CDN, title are stored in, it
+Assuming that the ISP has no direct access to the CDN titles are stored in, it
 needs to build a database of video traffic to match against future video stream
 captures. To build such a database, the ISP needs to have access to a network
 interface, control its inbound bandwidth, (to get different levels of quality
@@ -48,13 +48,14 @@ interface. We will consider the scenario in which the ISP limits the bandwidth
 of the ethernet interface of the switch.
 
 The value of the enforced bandwidth determines the quality (bitrate) of the
-content that will be captured. This require the ISP to choose a policy on how
-to throttle the bandwidth to get all different quality levels for each title.
-We assume the bandwidth levels to be the one shown in \Cref{tab:bandwidths}.
-These values, in our own version of the attack, have proven to reconstruct
-faithfully the bitrate ladders of each title, thus we assume the ISP to use
-them as reference, although in reality, our approach would work with any set
-capable of spanning the space of bitrate levels.
+content that will be captured. Assuming that each title has a unique bitrate
+ladder, the ISP should come up with an ad-hoc policy for every video to
+faithfully reconstruct the quality levels of it. While correct, a more viable
+approach to this problem, would be to just consider a range of bitrates capable
+of spanning the space of possible quality levels. 
+
+In our own version of the attack, presented in \Cref{sec:approach}, we use
+the values in \Cref{tab:bandwidths}. 
 
 \begin{table}[htb]
   \centering
@@ -69,7 +70,32 @@ capable of spanning the space of bitrate levels.
   \label{tab:bandwidths}
 \end{table}
 
-\todo{Explain briefly how the ISP needs to capture traffic to build the database}
+The ISP can now connect a UNIX-like machine to the switch's network interface
+with bandwidth limit \emph{b}, and invoke \texttt{adudump} to infer the size of
+each \emph{application data unit} ADU by processesing TCP/IP packet header
+traces that generate \emph{a-b-t connection vectors} \cite{hernandez}.
+
+\subsection{The a-b-t model}
+
+\todo{Describe the model}
+
+\subsection{Inference}
+
+\todo{Describe how ADUs size are computed}
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.7\columnwidth]{img/adudump.png}
+  \caption{Detailed segment size inference in adudump.}
+  \label{fig:adudump}
+\end{figure}
+
+\todo{Add sample adudump trace}
+
+In addition, to identify specific video traffic from a Netflix CDN, the ISP
+could either inspect the DNS response packets or TLS handshake messages, and
+perform a DNS lookup for each video every time, or to maintain an updated list
+of IP addresses with mappings to the recorded traffic.
 
 \section{Capturing video traffic}
 
@@ -85,5 +111,3 @@ presented below in \Cref{fig:schema}.
   \label{fig:schema}
 \end{figure}
 
-The UNIX machine can now listen onto the interface to which traffic is mirrored
-by invoking \texttt{tcpdump}. 
