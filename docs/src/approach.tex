@@ -7,5 +7,18 @@ over a compromised network.
 
 \section{Attack Scenario}
 
-In \Cref{sec:attack_isp}, the attack carried out by the ISP, required only 
+Our own version of the attack, conversely to the one depicted in
+\Cref{fig:schema}, does not model the ISP as the adversary, nor does involve
+the ISP at all. We consider the case in which attacker is a malicious user
+\emph{i}, with access to the network an honest client is using to stream a
+Netflix title. Attacker \emph{i} has:
+
+\begin{itemize}
+    \item either installed a passive TAP device on a LAN
+    \item or gained control of the main switch of a LAN
+    \item or compromised an AP over a public WiFi network.
+\end{itemize}
+
+\todo{Illustrate the possible scenarios for an attacker}
+
 
