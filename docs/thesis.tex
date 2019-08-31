@@ -201,8 +201,10 @@
 \usepackage{listings}
 \newcommand{\passthrough}[1]{#1}
 
+\input{adu_lst}
+
 \lstset{ 
-  basicstyle=\ttfamily,        % the size of the fonts that are used for the code
+  basicstyle=\footnotesize\ttfamily,        % the size of the fonts that are used for the code
   commentstyle=\itshape\color{gray},
   breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
   breaklines=true,                 % sets automatic line breaking
@@ -222,11 +224,23 @@
   moredelim={[is][\uwave]{__}{__}}
 }
 
+\lstdefinestyle{framedcode}{
+  % float,
+  floatplacement={!htbp},captionpos=b,
+  frame=lines,xleftmargin=8pt,xrightmargin=8pt,
+  %numbers=left,numberstyle=\footnotesize\ttfamily\color{gray},
+  aboveskip=1.5em,
+  xleftmargin=5pt,
+  framexleftmargin=0pt,
+}
 
 \newenvironment{nsflalign*}
  {\setlength{\abovedisplayskip}{0pt}\setlength{\belowdisplayskip}{0pt}%
   \csname flalign*\endcsname}
  {\csname endflalign*\endcsname\ignorespacesafterend}
+
+ \lstnewenvironment{adu}[1][]{%
+    \lstset{language=adu_lst,style=framedcode,#1}}{}
 
 % \lstnewenvironment{sil}[1][]{%
 %     \lstset{language=sil,

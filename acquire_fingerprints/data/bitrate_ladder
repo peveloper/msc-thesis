@@ -1,9 +1,10 @@
-plot_dir = "plots/"
+set term png
+plot_dir = ARG1
+file = ARG2
 filename = substr(file, 0, strstrt(file, "_") - 1)
 set xlabel "Enforced Throughputs (bits/s)" offset -0.1,0,0
 set ylabel "AVG Bitrate (bits/s)"
 set title sprintf("Bitrate Ladder ID: %s (120s playback)", filename)
-set term png
 set decimal locale
 set xtics nomirror out rotate by 90 offset 0,graph -0.06 scale 2
 set xtics font ", 8"

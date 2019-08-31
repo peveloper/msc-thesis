@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#mkdir plots
+mkdir -p har_plots/
 
 tls=5075
 http=520
@@ -12,9 +12,9 @@ for file in ../har/*; do
 
     echo $filename
 
-    cat $file |  cut -d ' ' -f234 > tmp
+    cat $file |  cut  -f2 > tmp
     # process har
-    awk -v overhead="${overhead}" '{if($1 > 100000) printf("%d\t%d\n", NR, $1-overhead)}' tmp > ./$filename
+    awk -v overhead="${overhead}" '{if($1 > 200000) c++; printf("%d\t%d\n", c, $1-overhead)}' tmp > ./$filename
     
 done
 
@@ -52,7 +52,7 @@ for title in "${ids[@]}"; do
 
     echo $fingerprints
     gnuplot -e "files='${fingerprints}'" movieplot
-    gnuplot -e "file='${bitrate_ladder_data}'" bitrate_ladder
+    gnuplot -c bitrate_ladder har_plots/ $bitrate_ladder_data
 
     rm -rf $files
 

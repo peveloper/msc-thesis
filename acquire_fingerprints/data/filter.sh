@@ -10,21 +10,32 @@ overhead=$(($tls+$http))
 overhead=0
 
 c=0
+
 for file in ../log/*; do
     filename="${file##*/}"
-    #awk '/^ADU/ && $5 ~ /^45*/ {if(c++>0 && $4=="<1" && $6>10000){sum+=$6;time_diff=$2-_n; cum_time+=time_diff; printf("%.11f\t%s\n", cum_time, $6)};{_n=$2}}' $file >> ./$filename.dat
-    awk '(/^ADU/ || /^INC/) && $5 ~ /^45*/ {if(c++>0 && $4=="<1" && $6>100000){cum_time+=1; printf("%s\n", $6)}}' $file > tmp
+    extension="${file##*.}"
+
+    cp $file $file.tcp
+
+    sudo ../tools/adudump/adudump -q 1000 $file -l 192.168.0.157/24 > tmp
+
+    mv tmp $file
+
+    declare -a local_ports=$(cut -d ' ' -f3 $file | sort | uniq | cut -d '.' -f5)
+
+    for port in ${local_ports[@]}; do
+        awk -v port="${port}" '{if(match($3, port "$") && $4=="<1") {sum+=$6; print;}}END{print sum}' $file
+    done
+
+    src_ips=$(cat ../har/$filename.har | cut -f1 | cut -d '/' -f3 | sort | uniq | xargs -l1 host | cut -d ' ' -f4)
     
-    awk -v overhead="${overhead}" '{printf("%d\t%d\n", NR, $1-overhead)}' tmp > ./$filename.dat
+    echo $src_ips
 
-    gnuplot -e "file='${filename}.dat'" singleplot
+    awk -v ips="${src_ips}" 'BEGIN{split(ips, ip_list, " "); for (i in ip_list) ip_values[ip_list[i]] = "";}{if (($1 ~ /^ADU/ || $1 ~ /^INC/) && $4=="<1" && substr($5, 0, 12) in ip_values && $6>10000) {c+=1; printf("%d\t%s\n",c,$6);}}' $file > ./$filename.dat
 
-    if (( c++ > 24 ));
-    then
-        break
-    fi
+    mv $file.tcp $file
+    
 done
-
 
 for record in *.dat; do
     if [ $record = "db.dat" ]
@@ -40,18 +51,11 @@ for record in *.dat; do
     echo $filename
 
     segments=$(wc -l $record | cut -d ' ' -f1)
-    #rec_time=$(bc <<< "5")
-    #overhead=$(($tls+$http))
-    #echo $rec_time
 
     awk -v speedup="${speedup}" '{if(c++>10) {diff+=$1-_n; printf("%.5f\t%.5f\n", diff, $2)}; {_n=$1}}' $record > bytespec.tmp
     measured_bitrate=$(awk '{sum+=$2}END{printf("%d", ((sum / NR) * 8) / 4 )}' $record)
-    #measured_bitrate=$(awk -v elapsed="${rec_time}" '{sum+=$1}END{printf("%.5f", (sum * 1e-9) / (elapsed * 0.0075)* 1e3)}' bytespec.tmp)
-    #awk '{time+=$1; size+=$2}{if(time > 4) print time, size; time=$1me}' bytespec.tmp
-    #bitrate=$(awk -v bitrate="${measured_bitrate}" '{print bitrate / 1e3}')
     printf "%d\t%.3f\n" $tp $measured_bitrate >> $filename.bl
     rm -rf bytespec.tmp
-    #bitrate=$(awk -v br="${measured_bitrate}" 'END{print br}')
     br=$((measured_bitrate / 1000))
     echo $br
     printf "%d\t%d\t" $id $br >> db.dat

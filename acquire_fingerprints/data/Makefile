@@ -1,8 +1,8 @@
 clean-data:
-	rm -rf *.dat
 	rm -rf *.har
 	rm -rf *.tm
 	rm -rf *.bl
-	rm -rf plots
+	rm -rf *.dat
+	rm -rf adu_plots
 run:
-	./filter.sh
+	./test.sh

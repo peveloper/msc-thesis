@@ -72,37 +72,95 @@ the values in \Cref{tab:bandwidths}.
 
 The ISP can now connect a UNIX-like machine to the switch's network interface
 with bandwidth limit \emph{b}, and invoke \texttt{adudump} to infer the size of
-each \emph{application data unit} ADU by processesing TCP/IP packet header
-traces that generate \emph{a-b-t connection vectors} \cite{hernandez}.
+each \emph{application data unit} ADU by processing TCP/IP packet header
+traces that generate \emph{a-b-t} connection vectors \cite{hernandez}.
 
 \subsection{The a-b-t model}
 
-\todo{Describe the model}
+The lifetime of a TCP endpoint that sends and receive data units is not only
+dictated by the time spent on these operations, but also by quiet times in
+which the TCP connection remains idle, waiting for upper layers to formulate
+new demands. Clearly, longer lifetimes may have a huge impact overall, due to
+the fact that resources needed to handle TCP state, remain reserved for a
+longer time. In contrast, ADUs that are sent within a short period of time, get
+aggregated by the TCP window mechanism, reducing the exchange of
+requests/responses between source and destination.
+
+These ideas have been formalized into the \emph{a-b-t model}, that describes
+TCP connections as sets of ADU exchanges and quiet times. The term a-b-t is
+descriptive of the building blocks of the model: \emph{a-type} ADUs, sent from
+the connection initiator to the connection acceptor, \emph{b-type} ADUs, sent
+from the responder back to the initiator, and quiet times \emph{t}'s, during no
+data segments are exchanged.
+
+The model has two different flavors depending on whether ADU interleaving is
+sequential or concurrent: the former is used for modeling connections for which
+only one ADU is sent from one endpoint to the other at a given point in time,
+(one endpoint will wait until the other has completed the transmission of the
+current ADU before sending a new one), while the latter is used for modeling
+connections in which both endpoints send and receive ADUs simultaneously.
+
+As one can notice from a sample traffic trace from Netflix, the two endpoints
+behave in a sequential fashion, as shown by the \texttt{SEQ} flag in
+\Cref{lst:adutrace}.
+
+\begin{adu}[caption={Incoming traffic trace of Mulan, captured at 10Mbps (first 10 segments).}, label={lst:adutrace}]
+ADU: 1565880580.152388 192.168.0.157.54924 <1 45.57.19.134.443 198837 SEQ 0.804088
+ADU: 1565880581.321246 192.168.0.157.54924 <1 45.57.19.134.443 198760 SEQ 0.907568
+ADU: 1565880582.688335 192.168.0.157.54924 <1 45.57.19.134.443 199407 SEQ 1.052862
+ADU: 1565880591.912352 192.168.0.157.54974 <1 45.57.19.134.443 525046 SEQ 0.058709
+ADU: 1565880592.168340 192.168.0.157.54968 <1 45.57.19.134.443 275568 SEQ 0.558654
+ADU: 1565880592.168344 192.168.0.157.54974 <1 45.57.19.134.443 305115 SEQ 0.062028
+ADU: 1565880592.172495 192.168.0.157.54982 <1 45.57.19.134.443 198735 SEQ 0.670224
+ADU: 1565880592.697314 192.168.0.157.54974 <1 45.57.19.134.443 236474 SEQ 0.179115
+ADU: 1565880592.820292 192.168.0.157.54982 <1 45.57.19.134.443 286547 SEQ 0.106913
+ADU: 1565880592.820395 192.168.0.157.54968 <1 45.57.19.134.443 198530 SEQ 0.310506
+\end{adu}
 
 \subsection{Inference}
 
-\todo{Describe how ADUs size are computed}
-
-\begin{figure}[!htb]
+\begin{figure}[!h]
   \centering
-  \includegraphics[width=0.7\columnwidth]{img/adudump.png}
+  \includegraphics[width=0.65\columnwidth]{img/adudump.png}
   \caption{Detailed segment size inference in adudump.}
   \label{fig:adudump}
 \end{figure}
 
-\todo{Add sample adudump trace}
+\Cref{fig:adudump} shows an example of how Adudump's inference process works.
+The connection starts when the three-way handshake completes, (marked as a
+\texttt{SEQ} record). The monitor then records the time the first data segment
+is sent from the client. The server then acknowledges the previous request, and
+adudump infers the size of the completed ADU to be 372 bytes, generating a
+record with the ADU's size direction and think-time. Note how adudump generates
+no record until it infers that the ADU is complete, moreover the think times
+reported, are relative to the position of the monitor in the network.
 
-In addition, to identify specific video traffic from a Netflix CDN, the ISP
-could either inspect the DNS response packets or TLS handshake messages, and
-perform a DNS lookup for each video every time, or to maintain an updated list
-of IP addresses with mappings to the recorded traffic.
+\subsection{Identifying Netflix traffic}
+
+In order to identify specific video traffic from a Netflix CDN, the ISP could
+either inspect the DNS response packets or TLS handshake messages, and perform
+a DNS lookup for each video every time, or to maintain an updated list of IP
+addresses with mappings to the recorded traffic. Then all the ISP is left with,
+is a mixed trace of audio and video segments. Each Netflix audio segments
+represents about 16 seconds of playback, while every video segment corresponds
+to a 4 second playback. The ISP could now decide to either filter out audio
+segments by either thresholding on the size of ADUs, as done by Reed et Al (at
+200 kilobytes), or to consider audio as part of the fingerprint of a title. The
+200 kilobytes threshold represent a good heuristic when considering traces
+recorded at high bandwidth levels, in fact, audio segments sizes are around 198
+kilobytes, whereas if considering the same title at a low level of bandwidth
+(less than 1 Mbps indicatively), one cannot distinguish audio and video
+segments by their size. For this reason, we consider an approach that does not
+filter out audio segments.
+
+\newpage
 
 \section{Capturing video traffic}
 
 This, requires the ISP to be in possess of a generic L4 switch that can mirror
 traffic from a port to another one. Then any UNIX-like system that implements
-\emph{libpcap} is suitable for capturing inbound traffic on the mirrored port, as
-presented below in \Cref{fig:schema}.
+\emph{libpcap} is suitable for capturing inbound traffic on the mirrored port,
+as presented below in \Cref{fig:schema}.
 
 \begin{figure}[!htb]
   \centering
@@ -110,4 +168,3 @@ presented below in \Cref{fig:schema}.
   \caption{Traffic capture scenario.}
   \label{fig:schema}
 \end{figure}
-
