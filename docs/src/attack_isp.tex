@@ -6,6 +6,51 @@ scenarios that allow adversaries to obtain such information, and describe how,
 in particular ISPs, could make use of it, to identify video streaming and
 profile users based on their streaming habits.
 
+\section{Netflix-ISP relationship}
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=\columnwidth]{img/playback.png}
+  \caption{Playback process diagram. \cite{netflix_oca}}
+  \label{fig:playback}
+\end{figure}
+
+Above is illustrated the process of retrieving content whenever a user wants to
+play a Netflix title. OCAs \emph{Open Connect Appliances} are purpose-built
+servers responsible to store and serve video files over HTTPS to client
+devices.  OCAs as Netflix claims, do not store client data (DRM info or member
+data), but only report health metrics to Netflix monitoring services in AWS.
+
+Whenever a play request is issued by a client device, playback application
+services in AWS determine which streaming assets are required to handle the
+streaming of the intended title
+
+Then the steering service uses cache-control services to select the best OCAs
+depending on client characteristics and network conditions, generating URLs
+that are passed back to the client device, that is now able to "communicate"
+with the OCAs.
+
+\todo{insert an example of URL, and explain how ISP cannot associate a URL to a
+specific title in a trivial way}
+
+Netflix partners with ISPs in the deployment of their CDN, following are
+presented two different policies:
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=\columnwidth]{img/oca_1.png}
+  \caption{OCAs are installed within Internet Exchange Points (IXP), and
+  interconnected to ISPs. \cite{netflix_oca}}
+  \label{fig:oca_1}
+\end{figure}
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=\columnwidth]{img/oca_2.png}
+  \caption{OCAs are directly deployed inside ISP networks. \cite{netflix_oca}}
+  \label{fig:oca_2}
+\end{figure}
+
 \section{Attack Scenarios}\label{attack_scenarios}
 
 Given the nature of modern Internet infrastructure, an adversary interested in
@@ -35,11 +80,11 @@ an attack, considering the ISP an \emph{on-path} attacker.
 
 \section{Video Fingerprinting}
 
-Assuming that the ISP has no direct access to the CDN titles are stored in, it
-needs to build a database of video traffic to match against future video stream
-captures. To build such a database, the ISP needs to have access to a network
-interface, control its inbound bandwidth, (to get different levels of quality
-for each title), and capture incoming traffic passing through it.
+In order to identify video stream traffic of a specific user, the ISP needs to
+build a database of video fingerprints to match against. To build such a
+database, the ISP needs to have access to a network interface, control its
+inbound bandwidth, (to get different levels of quality for each title), and
+capture incoming traffic passing through it.
 
 In order to control the incoming bandwidth, the ISP could either limit it
 directly onto a generic L4 switch, or decide to connect
@@ -75,7 +120,7 @@ with bandwidth limit \emph{b}, and invoke \texttt{adudump} to infer the size of
 each \emph{application data unit} ADU by processing TCP/IP packet header
 traces that generate \emph{a-b-t} connection vectors \cite{hernandez}.
 
-\subsection{The a-b-t model}
+\subsection{The \emph{a-b-t} model}
 
 The lifetime of a TCP endpoint that sends and receive data units is not only
 dictated by the time spent on these operations, but also by quiet times in
@@ -144,7 +189,7 @@ In order to identify specific video traffic from a Netflix CDN, the ISP could
 either inspect the DNS response packets or the TLS handshake messages, and
 perform a DNS lookup for each video every time, or to maintain an updated list
 of IP addresses with mappings to the recorded traffic. Then all the ISP is left
-with, is a mixed trace of audio and video segments. Each Netflix audio segments
+with, is a mixed trace of audio and video segments. Each Netflix audio segment
 represents about 16 seconds of playback, while every video segment corresponds
 to a 4 second playback. The ISP could now decide to either filter out audio
 segments by either thresholding on the size of ADUs, as done by Reed et Al (at
@@ -167,8 +212,6 @@ addition, as Netflix is constantly adding/removing titles from its library, the
 ISP is required to constantly keeping updated the database to guarantee that
 the attack can target newly added titles.
 
-\newpage
-
 \section{Capturing video traffic}
 
 In order to capture video traffic to match it against a database of collected
@@ -176,6 +219,8 @@ fingerprints, it requires the ISP to be in possess of a generic L4 switch
 capable of mirroring traffic from a port to another one. Then any UNIX-like
 system that implements \emph{libpcap} is suitable for capturing inbound traffic
 on the mirrored port, as presented below in \Cref{fig:schema}.
+
+\todo{modify this image}
 
 \begin{figure}[!htb]
   \centering
@@ -187,17 +232,31 @@ on the mirrored port, as presented below in \Cref{fig:schema}.
 In this scenario, the client is unaware of the fact that its traffic is being
 mirrored and recorded by the ISP, and there is no practical way for him to
 claim that. On the other hand, a user concerned with its privacy, may avoid
-such attack.
-
-\subsection{Matching Captured traffic to fingerprints}
-
-\todo{Explain how the ISP could identify the content being streamed.}
+such attack, as described in \Cref{sec:vpn}.
 
 \subsection{Data acquired by the ISP}
 
-\todo{Describe which kind of data the ISP is able to collect}
+Captured traffic, as shown in \Cref{lst:adutrace}, apart from the size of each
+segment and quiet times, include timestamps of each ADU, and source and
+destination IP addresses. With this information, the ISP is able to reconstruct
+streaming habits of every targeted user (identifiable by the source IP
+address),  by looking at what time he/she does usually connect to the platform,
+identifying the content of the stream (matching to fingerprints), and by
+analyzing how much time the user spends watching content. Thus the ISP can
+aggregate user's collected data and build a database of user profiles to use it
+for its own will. Data about a particular user is no longer in the solely hands
+of Netflix, as one could argue it should be, but it now resides in some ISP
+database, potentially exploitable and profitable, with any prior consent.
 
-\subsection{Possible countermeasures}
+\subsection{Matching Captured traffic to fingerprints}
+
+The ISP can now identify the captured trace by comparing it to the saved
+fingerprints.  Based on the type of data structure used to store them, there
+are several methods to search and retrieve the best candidate for a given
+trace. We will not articulate this process here, but we rather present our own
+solution later in \Cref{sec:approach}.
+
+\subsection{Possible countermeasures}\label{sec:vpn}
 
 In order to safely stream Netflix videos without the ISP being able to identify
 the content of them, a user particularly concerned about its privacy, (e.g.
@@ -209,12 +268,12 @@ VPN server in fact, to establish a communication with the webpage the user
 wants to access.  The key point is that the client and the VPN server establish
 a secure connection (VPN tunnel). Thus, as long as the user's VPN of choice,
 encrypts data transfer, either with IPSec's \textbf{Encapsulated Security
-Payload} or, in case of a remote-access VPN, with PPP's based protocols such as
-L2F, PPTP or LT2P, the user is guaranteed that its traffic cannot be
-intercepted by the ISP. This is feasible as long as both the VPN software
-provides an automatic kill switch to avoid dropouts, and the online resource
-does not restrict access to user connected via VPN. 
+Payload} or, in case of a remote-access VPN, with point-to-point based
+protocols such as L2F, PPTP or LT2P, the user is guaranteed that its traffic
+cannot be intercepted by the ISP. This is feasible as long as both the VPN
+software provides an automatic kill switch to avoid dropouts, and the online
+resource does not restrict access to users connected via VPN. 
 
-Netflix prevents the use of VPN
-software to prevent users to access to other countries catalogue, although
-certain VPN clients are able to bypass this check \cite{nordvpn}.
+Netflix does not allow the use of VPN software to prevent users to get access
+to other countries catalogue, although certain VPN clients are able to bypass
+this check \cite{nordvpn}.

@@ -2,15 +2,21 @@
 
 After having shown the perspective of an ISP in the role of an attacker, we
 will now present our contribution and practical approach to build a database of
-fingerprints, capture and identify video traffic streamed by an unaware user
+fingerprints, capture and identify video traffic of an unaware user
 over a compromised network. 
+
+We have built a system capable of manipulating the incoming bandwidth of a
+network interface, able to obtain fingerprints for a limited number of Netflix
+titles at various bandwidth levels, and reconstructed each video's bitrate
+ladder. We evaluate such a system by feeding it several test-captures of videos
+present in our fingerprint's database at \emph{unseen} bandwidth levels.
 
 \section{Attack Scenario}
 
 Our own version of the attack, conversely to the one depicted in
 \Cref{fig:schema}, does not model the ISP as the adversary, nor does involve
-the ISP at all. We consider the case in which attacker is a malicious user
-\emph{i}, with access to the network an honest client is using to stream a
+the ISP at all. We consider the case in which the attacker is a malicious user
+\emph{i}, with access to the same network an honest client is using to stream a
 Netflix title. Attacker \emph{i} has:
 
 \begin{itemize}
@@ -21,4 +27,133 @@ Netflix title. Attacker \emph{i} has:
 
 \todo{Illustrate the possible scenarios for an attacker}
 
+For each of the aforementioned scenarios, the steps required for the attacker
+\emph{i} to identify video traffic of another user, are the same: the first
+phase consists of recording fingerprints of each Netflix title, process them,
+store them in a persisent (and convenient for search and retrieval) data
+structure, while the second phase consists of exploiting the compromise device
+in the network to capture user's traffic and identify the content of the stream
+by querying the database of fingerprint.
 
+\section{Video Fingerprinting}
+
+Let $T$ be the set of Netflix titles for Switzerland, we refer to $n$ as the
+cardinality $|T|$, which is roughly 3500; consider now the set $R$ as the set of
+bandwidth levels shown in \Cref{tab:bandwidths}, we refer to $i$ as the
+cardinality $|R|$.
+
+Consider now the cartesian product $T \times R$:
+
+\begin{equation*}
+T \times R = \{(t_1, r_1), (t_1, r_2) \dots (t_n, r_i)\} 
+\end{equation*}
+
+and its cardinality:
+
+\begin{equation*}
+|T \times R| = |T| \cdot |R| = n \cdot i \approx 45500
+\end{equation*}
+
+Due to time restrictions, we have decided to fix the size of the set $T$ of
+titles to 100, in order to give a proof of concept on the feasibility of such
+an attack.  According \cite{netflix-real-time}, we have also decided to bound
+the time of each video capture to 4 minutes of playback, as it has been shown
+to be sufficient in order to uniquely identify a video over more than 40000
+titles.
+
+\subsection{Implementation overview}
+
+We have implemented a set of Python scripts to be able to:
+
+\begin{enumerate}
+    \item Crawl the swiss Netflix catalogue to obtain a list of video IDs.
+    \item Manipulate the incoming bandwidth of an ethernet network interface.
+    \item Invoke \texttt{tcpdump} listening on the same network interface.
+    \item Instrument the browser to:
+        \begin{enumerate}
+            \item Navigate to a specific title URL (identified by the title ID).
+            \item Control the Netflix video player by injecting JavaScript code.
+            \item Capture HAR metadata via a proxy.
+        \end{enumerate}
+\end{enumerate}
+
+Note that contrary to \cite{netflix-real-time}, in this phase we do not make
+use of adudump, instead, to record traffic, we use tcpdump \cite{libpcap}. The
+main reason behind this choice, is the fact that adudump has been conceived to
+reconstruct data segments sizes in an online fashion. By doing so, the time
+spent by adudump processing each segment, creates an overhead that in turn,
+results in noisy measurements.  Adudump can work in an offline-fashion, simply
+by passing as input a \texttt{pcap} \cite{libpcap} file, that gets generated
+when invoking tcpdump.  We have tested and analyzed this behaviour and visual
+evidence is presented in \Cref{fig:online_vs_offline}.
+
+\todo{add plots of adudump's behaviour when invoked online vs on a .pcap file}
+
+\subsection{Crawler}
+
+The script responsible of crawling the Netflix catalogue is
+\texttt{crawler.py}.  We use the \texttt{scrapy} Python library \cite{scrapy}
+to get a list of Netflix titles divided by genre. Note that, for the sake of
+simplicity, we have decided to work only with movies, as for TV series, we
+would have need to add checks due to the autoplay function of subsequent
+episodes in the viewing phase.
+
+The resulting output of the script is a CSV file with the following structure:
+
+\begin{adu}[caption={Sample of crawled movies}, label={lst:crawl_output}]
+ID        GENRE             TITLE
+
+70115629, Family Animation, Despicable Me
+70264803, Family Animation, Despicable Me 2
+80096067, Family Animation, Ice Age: Collision Course
+70220028, Family Animation, Hotel Transylvania
+80121840, Family Animation, The Emoji Movie
+70021636, Family Animation, Madagascar
+70216224, Family Animation, Madagascar 3: Europe's Most Wanted
+70213513, Family Animation, Brave
+14607635, Family Animation, Mulan
+\end{adu}
+
+Due to the fact that a movie can be labeled in more than one category, the
+resulting CSV have been filtered to include just one occurrence of each title.
+
+\todo{modify style of command listings}
+
+\begin{adu}[caption={Command to filter out unique IDs}, label={titles}]
+cat netflix_titles/titles.csv | cut -d , -f1 | sort | uniq
+\end{adu}
+
+\subsection{Bandwidth Manipulation}
+
+In order to be able to manually control the bandwidth of the ethernet
+interface, we use \texttt{tcconfig} \cite{tcconfig}, a Python wrapper for the
+\texttt{tc} \cite{tc} Unix utility to configure traffic control in the kernel.
+
+The script that throttles the bandwidth is \texttt{bandwidth\_manipulator.py},
+that invokes the command:
+
+\begin{adu}[caption={Enforce a bandwidth rate on the specified interface}, label={tcconfig}]
+tcset --device <network_interface> --direction incoming --rate <bandwidth_rate> --overwrite
+\end{adu}
+
+\todo{tcconfig, plots of real bandwidth levels}
+
+\subsection{Tcpdump}
+
+\todo{Add listing with tcpdump instance and flags.}
+
+\subsection{Automated streaming with Selenium}
+
+\todo{Describe \texttt{netflix\_browser.py} and why we need HAR metadata.}
+
+\section{Post-processing}
+
+\todo{Explain how ADU records are filtered and saved}
+
+\section{Capturing video traffic}
+
+\todo{Explain how we capture and filter video traffic}
+
+\section{Identification}
+
+\todo{Describe the identification process and the choice of data structures}
