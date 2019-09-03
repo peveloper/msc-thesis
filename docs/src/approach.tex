@@ -117,11 +117,9 @@ ID        GENRE             TITLE
 Due to the fact that a movie can be labeled in more than one category, the
 resulting CSV have been filtered to include just one occurrence of each title.
 
-\todo{modify style of command listings}
-
-\begin{adu}[caption={Command to filter out unique IDs}, label={titles}]
+\begin{bash_script}[caption={Command to filter out unique IDs}, label={titles}]
 cat netflix_titles/titles.csv | cut -d , -f1 | sort | uniq
-\end{adu}
+\end{bash_script}
 
 \subsection{Bandwidth Manipulation}
 
@@ -132,17 +130,52 @@ interface, we use \texttt{tcconfig} \cite{tcconfig}, a Python wrapper for the
 The script that throttles the bandwidth is \texttt{bandwidth\_manipulator.py},
 that invokes the command:
 
-\begin{adu}[caption={Enforce a bandwidth rate on the specified interface}, label={tcconfig}]
-tcset --device <network_interface> --direction incoming --rate <bandwidth_rate> --overwrite
-\end{adu}
+\begin{bash_script}[caption={Enforce a bandwidth rate on the specified interface}, label={tcconfig}]
+tcset --device <network_interface> --direction incoming --rate <bandwidth_rate>
+\end{bash_script}
 
 \todo{tcconfig, plots of real bandwidth levels}
 
 \subsection{Tcpdump}
 
-\todo{Add listing with tcpdump instance and flags.}
+The script that records the capture traffic is \texttt{capture.py}, it calls tcpdump as below:
+
+\begin{bash_script}[caption={Listens for TCP/IP traffic on the specified interface}, label={tcpdump}]
+tcpdump -i <network_interface> net 45 -w <output_file>
+\end{bash_script}
+
+Note the usage of argument \texttt{net 45}. As Netflix OCAs IP addresses are of
+the form \texttt{45.XXX.XXX.XXX}, to simplify the process of identifying
+traffic from Netflix, we just use this regular expression for convenience.
+Steps required to carry out a more general way to achieve this have been
+described in \Cref{dns}.
 
 \subsection{Automated streaming with Selenium}
+
+In order to instrument the browser to automatically stream each title, we have
+developed a script that uses \texttt{Selenium} library \cite{selenium}.
+
+Selenium provides a \texttt{WebDriver} interface capable of controlling various
+browsers such as Chrome, Opera, Safari, Firefox and others. One must use the
+appropriate version of the WebDriver, according to the browser of choice and
+its version. For convenience of use, and support, we have chosen to work with
+GoogleChrome and its ChromeDriver interface.
+
+Furthermore, to speedup the capture of each video, we have installed an
+extension that is able to control HTML5 video speed playback.
+
+We have implemented a class \texttt{netflix\_browser.py} capable of:
+
+\begin{enumerate}
+    \item Log in the user to its Netflix account
+    \item Navigate to a video url given a video ID
+    \item Seek the video to 240 seconds (4 minutes) (Avoiding entry credits)
+    \item Wait until the buffer of the video reaches 8 minutes (start at 240 seconds, ends at 480).
+\end{enumerate}
+
+
+
+
 
 \todo{Describe \texttt{netflix\_browser.py} and why we need HAR metadata.}
 
