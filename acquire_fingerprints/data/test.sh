@@ -13,34 +13,9 @@ get_adus() {
     file=$2
     adu_file="adu/$file"
     tp=$(echo $file | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $2 * 1e3}')
-    #case $tp in
-        #600000)
-            #return 0
-            #;;
-        #800000)
-            #return 0
-            #;;
-    #esac
     echo $tp
     if [ $1 == 0 ];
     then
-        #case $tp in
-            #600)
-                #adu_quiet_time=100
-                #;;
-            #800)
-                #adu_quiet_time=100
-                #;;
-            #1200)
-                #adu_quiet_time=500
-                #;;  
-            #2000)
-                #adu_quiet_time=500
-                #;;  
-            #3500)
-                #adu_quiet_time=500
-                #;;
-        #esac
         ../tools/adudump/adudump ../log/$file -l 192.168.0.157/24 -q $adu_quiet_time > $adu_file
     fi
     
@@ -59,7 +34,9 @@ build_fingerprint_db() {
     measured_bitrate=$(awk '{sum+=$2}END{printf("%d", ((sum / NR) * 8) / 4 )}' $record)
     printf "%d\t%.3f\n" $tp $measured_bitrate > $record.bl
     br=$((measured_bitrate / 1000))
-    awk -v id="${id}" -v br="${br}" 'BEGIN{printf("%d\t%d\t", id, br);}{ printf("%d,", $2)}END{printf("\n")}' $record
+    tp=$((tp / 1000)) 
+    name="${id}_${tp}"
+    awk -v name="${name}" -v br="${br}" 'BEGIN{printf("%s\t%d\t", name, br);}{ printf("%d,", $2)}END{printf("\n")}' $record
 }
 
 ids=($(ls | grep -e '^[0-9]*_[0-9]*.dat$' | cut -d '_' -f1 | sort -u))
@@ -87,8 +64,8 @@ export -f build_fingerprint_db
 export -f gen_plots
 export adu_plots=$adu_plots
 
-ls ../log/ | parallel get_adus 1
+#ls ../log/ | parallel get_adus 1
 echo "DONE"
-ls | grep -e '^[0-9]*_[0-9]*.dat$' | parallel build_fingerprint_db > db.dat
+#ls | grep -e '^[0-9]*_[0-9]*.dat$' | parallel build_fingerprint_db > db.dat
 echo "DID"
-#gen_plots
+gen_plots

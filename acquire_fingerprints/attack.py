@@ -18,11 +18,7 @@ inventory = Inventory()
 
 video_db = inventory.get_movies()
 genres = inventory.get_genres() 
-# not in swiss catalogue: 19
-# video_ids = inventory.get_selection_of_movies_by_genre()
-video_ids=['80141858']
-# print(video_ids)
-# exit(0)
+video_ids = inventory.get_selection_of_movies_by_genre()
 
 print("Capturing %d titles at %d bandwidth levels" % (len(video_ids), len(config.throughputs)))
 
@@ -31,7 +27,7 @@ loop_count = len(config.throughputs)
 video_count = len(video_ids)
 loop_length = (config.capture_duration + config.wait_after_throughput_adjustment)
 full_length = video_count * (loop_count * loop_length)
-print("This capture will run for " + humanfriendly.format_timespan(full_length))
+# print("This capture will run for " + humanfriendly.format_timespan(full_length))
 
 local_ip = config.local_ip
 interface = config.network_device
@@ -73,7 +69,7 @@ def main():
                 for throughput in config.throughputs:
 
                     # inform user
-                    print("Capturing " + video + " with id " + str(video_id))
+                    # print("Capturing " + video + " with id " + str(video_id))
 
                     # set initial amount
                     bandwidth.set_rate(str(throughput) + "kbps")

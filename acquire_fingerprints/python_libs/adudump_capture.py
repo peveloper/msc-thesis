@@ -20,50 +20,19 @@ class AdudumpCapture:
     __interface = None
     __t = None
     __q = None
-    # __filename = None
 
     def __init__(self, local_ip, interface, file):
         self.__local_ip = local_ip
         self.__interface = interface
         self.__log_file = file
-        # self.__q = Queue()
 
     
     def __enter__(self):
-        # self.__start_adudump()
+        self.__start_adudump()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-
-        # self.__process.terminate()
-        # self.__process.wait(0.2)
-        # self.__t.join()
-
-        # while True:
-          # if y.poll(1):
-             # print(self.__process.stderr.readline())
-
-        # os.killpg(self.__process.pid, signal.SIGINT)
-        # nbsr = NBSR(self.__process.stdout)
-        # print('exiting log..')
-
-        # while True:
-            # output = self.__nbsr.readline()
-            # if not output:
-                # break
-            # print(output)
-        # self.__log_file.flush()
-        # while True:
-            # try:
-                # print(self.__q.get_nowait())
-            # except Empty:
-                # print('empty')
-        # self.__t.join()
         self.__kill_adudump()
-
-        
-        # self.__process.kill()
-        # self.__log_file.close()
         return self
 
     def get_process(self):
@@ -77,54 +46,14 @@ class AdudumpCapture:
         for line in iter(self.__process.stdout.readline, b''):
             if line:
                 self.__q.put(line)
-                
-            # self.__log_file.write(line)
-            # print('got line: {0}'.format(line.decode('utf-8')), end='')
 
-    def start_adudump(self):
+    def __start_adudump(self):
         """
         starts the adudump executable
         """
-        # self.__log_file = open(
-            # static_config.log_dir + "/" + self.__filename, "w"
-        # )
+        os.system("sudo tcpdump -i " + self.__interface + " net 45 -s 0 -w " + static_config.log_dir + "/" + self.__log_file + " &")
 
-        # start executable, and save logfile to
-        # self.__process = subprocess.Popen(
-            # "sudo " + static_config.adudump_dir + "/adudump -q 500 -C ipfilter='net 45' -C norm=0 -l " + 
-            # self.__local_ip + " if:" + self.__interface,
-            # shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        # )
-
-        os.system("sudo " + static_config.adudump_dir + "/adudump -q 500 -C ipfilter='net 45' -C norm=0 -l " + 
-            self.__local_ip + " if:" + self.__interface + " > " + self.__log_file + " 2>&1 &")
-
-        # self.__t = Thread(target=self.output_reader)
-        # self.__t.daemon = True
-        # self.__t.start()
-
-        # self.__nbsr = NBSR(self.__process.stdout)
-
-        # def reader(f,buffer):
-           # while True:
-             # line=f.readline()
-             # if line:
-                # buffer.append(line)
-             # else:
-                # break
-
-        # t=Thread(target=reader,args=(self.__process.stdout, self.__linebuffer))
-        # t.daemon=True
-        # t.start()
-
-
-        # while self.__process.poll() is None:
-            # l = self.__process.stdout.readline() # This blocks until it receives a newline.
-            # print(l)
-        # When the subprocess terminates there might be unconsumed output 
-        # that still needs to be processed.
-
-        # wait three seconds for it to settle
+        # wait ten seconds for it to settle
         i = 10
         while i > 0:
             print("waiting " + str(i))
@@ -138,11 +67,6 @@ class AdudumpCapture:
         """
         kills the adudump executable
         """
-
-        
-        time.sleep(120)
-        os.system('sudo pkill -INT -f \'.*adudump.*\'')
-
-        # kill adudump
-        print("found & killed adudump")
+        os.system('sudo pkill -TERM -f \'.*tcpdump.*\'')
+        print("found & killed tcpdump")
         return

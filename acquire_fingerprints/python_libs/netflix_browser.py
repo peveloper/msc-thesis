@@ -5,9 +5,10 @@ import os
 import json
 import time
 import psutil
+import numpy as np
 
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.browser.options import Options
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,7 +17,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains 
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.firefox.options import Log
+from selenium.webdriver.browser.options import Log
 from browsermobproxy import Server
 from urllib.parse import urlparse
 from typing import Optional
@@ -47,18 +48,18 @@ class NetflixBrowser:
         if os.path.isfile(config.cookie_file_path):
             self.__cookies = pickle.load(open(config.cookie_file_path, "rb"))
 
-        self.__try_create_firefox()
+        self.__try_create_browser()
 
         return self
     
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.__server.stop()
-        self.__firefox.quit()
+        self.__browser.quit()
 
-    def __try_create_firefox(self):
+    def __try_create_browser(self):
         """
-        construct the selenium firefox browser
+        construct the selenium browser browser
         """
 
         log = Log()
@@ -75,61 +76,32 @@ class NetflixBrowser:
         video_url = self.__get_video_url(inventory.test_video)
 
         options = webdriver.ChromeOptions()
-        # options.add_extension(config.netflix_extension_path)
         options.add_argument('--disable-application-cache')
         options.add_argument("user-data-dir=/home/peveloper/.config/google-chrome")
-        # options.add_extension(config.speedup_extension_path)
+        options.add_extension(config.speedup_extension_path)
         options.add_argument("--proxy-server={0}".format(url))
         # options.add_argument('headless')
 
-
-        self.__firefox = webdriver.Chrome(chrome_options=options)
-
-
-
-        # firefox_options = Options()
-        # firefox_options.headless = True
-        # firefox_options.add_argument("-devtools")
-        # firefox_options.add_argument(log.level)
-
-        # firefox_profile = webdriver.FirefoxProfile(config.firefox_profile)
-        # firefox_profile.set_preference("browser.link.open_newwindow", 1)
-        # firefox_profile.set_preference("devtools.toolbox.selectedTool", "netmonitor")
-
-        # self.__firefox = webdriver.Firefox(options=firefox_options, firefox_profile=firefox_profile)
-
-        # remember to include .xpi at the end of your file names 
-        # extensions = [
-            # '{7be2ba16-0f1e-4d93-9ebc-5164397477a9}.xpi',
-            # '{89d04aec-e93f-4f56-b77c-f2295051c13e}.xpi'
-            # 'har_export_trigger-0.6.1-an+fx.xpi'
-        # ]
-
-        # for extension in extensions:
-
-            # self.__firefox.install_addon(config.extensions_dir + "/" + extension, temporary=True)
-
-        
-        self.__firefox.get(video_url)
+        self.__browser = webdriver.Chrome(chrome_options=options)
 
         # if cookies set, add them to the browser
         if self.__cookies is not None:
             for cookie in self.__cookies:
-                self.__firefox.add_cookie(cookie)
+                self.__browser.add_cookie(cookie)
 
         # check for the login button
         login_link = self.__try_find_element_by_class("authLinks", 2)
         if login_link is not None:
-            current_url = self.__firefox.current_url
+            current_url = self.__browser.current_url
             # login button found, so we need to perform a login
             link = login_link.get_attribute("href")
 
             try:
-                self.__firefox.get(link)
+                self.__browser.get(link)
             except:
                 return False
 
-            WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
+            WebDriverWait(self.__browser, 10).until(EC.url_changes(current_url))
 
             # get username & password field
             username_field = self.__try_find_element_by_id("id_userLoginId")
@@ -139,21 +111,21 @@ class NetflixBrowser:
             username_field.send_keys(self.__credentials["netflix"]["username"])
             password_field.send_keys(self.__credentials["netflix"]["password"])
 
-            current_url = self.__firefox.current_url
+            current_url = self.__browser.current_url
 
             # submit the form
             password_field.submit()
 
             try:
-                WebDriverWait(self.__firefox, 10).until(EC.url_changes(current_url))
+                WebDriverWait(self.__browser, 10).until(EC.url_changes(current_url))
             except:
                 return False
 
             # click on the profile to be used
-            self.__firefox.get("https://www.netflix.com/SwitchProfile?tkn=" + self.__credentials["netflix"]["profile"])
+            self.__browser.get("https://www.netflix.com/SwitchProfile?tkn=" + self.__credentials["netflix"]["profile"])
 
             # save cookies for next time
-            cookies = self.__firefox.get_cookies()
+            cookies = self.__browser.get_cookies()
             pickle.dump(cookies, open(config.cookie_file_path, "wb"))
 
     @staticmethod
@@ -161,70 +133,24 @@ class NetflixBrowser:
         url = 'https://www.netflix.com/watch/' + str(netflix_id)
         return url
 
-    # def rewind_movie(self, netflix_id):
-        # video_url = self.__get_video_url(netflix_id)
-
-        # self.__firefox.get(video_url)
-
-        # print("Loading page, this may take a while ...")
-
-        # try:
-            # WebDriverWait(self.__firefox, 60).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
-        # except TimeoutException:
-            # return False
-
-        # if self.__try_find_element_by_class("nfp-fatal-error-view", 3) is not None:
-            # title = self.__try_find_element_by_class("error-title", 3)
-
-            # self.__firefox.save_screenshot(config.error_dir + "/" + title + ".png")
-
-            # print("Netflix error occurred: " + title.text)
-            # if title is not None:
-                # if title.text == "Multiple Netflix Tabs":
-                    # return False
-                # if title.text == "Streaming Error":
-                    # return False
-
-        # while not self.__is_page_loaded:
-            # self.__is_page_loaded = self.__get_page_status()
-
-        # if not self.__prevent_more_requests():
-            # return False
-
-        # if not self.__seek_video():
-            # return False
-
-        # if not self.__wait_buffering():
-            # return False
-        
-        # self.__is_page_loaded = False
-
-        # return True
-
     def navigate(self, netflix_id, rate, capture):
         video_url = self.__get_video_url(netflix_id)
-        current_url = self.__firefox.current_url
+        current_url = self.__browser.current_url
 
         print("Loading page, this may take a while ...")
 
-
-
-        self.__firefox.get(video_url)
-
-        # self.__prevent_more_requests()
+        self.__browser.get(video_url)
 
         try:
-            WebDriverWait(self.__firefox, 60).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
+            WebDriverWait(self.__browser, 60).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
         except TimeoutException:
             print('Page loading timeout. Exiting')
             return False
 
-
-
         if self.__try_find_element_by_class("nfp-fatal-error-view", 3) is not None:
             title = self.__try_find_element_by_class("error-title", 3)
 
-            self.__firefox.save_screenshot(config.error_dir + "/" + title + ".png")
+            self.__browser.save_screenshot(config.error_dir + "/" + title + ".png")
 
             print("Netflix error occurred: " + title.text)
             if title is not None:
@@ -243,41 +169,16 @@ class NetflixBrowser:
 
         self.__proxy.new_har(str(netflix_id) + "_" + str(rate), options={'captureHeaders': True})
 
-        try:
-            capture.start_adudump()
-        except Exception as e:
-            print(e)
-
         if not self.__play_video():
             return False
 
         
-        # actions = ActionChains(self.__firefox)
+        actions = ActionChains(self.__browser)
 
-        # times = int(config.speedup - 1.0) * 10
-        # speedup the playback
-        # for i in range(0, times):
-            # actions.send_keys("d").perform()
-
-        # actions.send_keys("r").perform()
-
-        # if not self.__prevent_more_requests():
-            # return False
-        
-        # if not self.__rewind():
-            # return False
-        # if not self.__wait_buffering():
-            # return False
-
-        # if not self.__seek_video():
-            # return False
-        # if not self.__wait_buffering():
-            # return False
+        actions.send_keys("r").perform()
 
         if not self.__stop_playback():
             return False
-
-        # time.sleep(int(config.capture_duration / config.speedup))
 
         if not self.__get_har(netflix_id, rate):
             return False
@@ -293,7 +194,7 @@ class NetflixBrowser:
             js_script = file.read()
 
         try:
-            summary =  self.__firefox.execute_script(js_script)
+            summary =  self.__browser.execute_script(config.javascript_dir + "/" + js_script)
             print(summary)
         except:
             return False
@@ -310,12 +211,9 @@ class NetflixBrowser:
         buffered = 0
         init = -1
         try:
-            while buffered < 360000:
-                buffered = self.__firefox.execute_script(js_script)
-                # if buffered > 0 and init == -1:
-                    # init=time.time()
-
-                print('Buffered %d / 360000' % buffered)
+            while buffered < 480000:
+                buffered = self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+                print('Buffered %d / 480000' % buffered)
         except:
             return False
 
@@ -335,7 +233,7 @@ class NetflixBrowser:
         ready = False
         while not ready: 
             try:
-                ready = self.__firefox.execute_script(js_script)
+                ready = self.__browser.execute_script(config.javascript_dir + "/" + js_script)
             except Exception as e:
                 print(e)
                 return False
@@ -352,13 +250,6 @@ class NetflixBrowser:
         """
 
         print('Getting HARs ...')
-        # with open('get_har.js', 'r') as file:
-            # js_script = file.read()
-
-        # try:
-            # content = self.__firefox.execute_script(js_script)
-        # except:
-            # return False
         try:
             content = self.__proxy.har
         except Exception as e:
@@ -369,6 +260,8 @@ class NetflixBrowser:
 
         packets = content['log']['entries']
 
+        query = None
+        different_cdn = False
         entries = []
         range_list = []
         for packet in packets:
@@ -378,28 +271,43 @@ class NetflixBrowser:
 
             if "video.net/range/" in har_entry.url and int(packet["response"]["status"]) == 200:
 
-                # cut of url at /range to parse it
-                range_url = har_entry.url[(har_entry.url.rindex("/range") + len("/range") + 1):]
+                range_url = har_entry.url
 
                 # remove query parameters
                 if "?" in range_url:
-                    range_url = range_url[:range_url.index("?")]
+                    try:
+                        domain = range_url.split('/')[2]
+                        query = range_url[range_url.index("?"):]
+                    except Exception as e:
+                        print(e)
 
-                ranges = range_url.split("-")
-                har_entry.range_start = int(ranges[0])
-                har_entry.range_end = int(ranges[1])
+                query = query.split('&')[0]
 
-                if har_entry.range_start not in range_list:
-                    har_entry.is_video = True
+                range_url = har_entry.url[(har_entry.url.rindex("/range") + len("/range") + 1):]
+                range_url = range_url[:range_url.index("?")]
 
-                # parse range (of the form 7123-8723)
-                    range_list.append(har_entry.range_start)
-                    entries.append(har_entry)
+                try:
+                    ranges = range_url.split("-")
+                    har_entry.range_start = int(ranges[0])
+                    har_entry.range_end = int(ranges[1])
+                except Exception as e:
+                    print(e)
+                    exit(0)
+
+                range_list.append(int(ranges[0]))
+                har_entry.is_video = True
+                entries.append(har_entry)
+
+        range_list = np.array(sorted(range_list))
+        first_occurrence = np.argmax(range_list > 0)
+
+        audio_segments = range_list[first_occurrence: first_occurrence + 17]
+        
 
         with open(config.har_dir  + "/" + filename, 'w') as file:
             for entry in entries:
-                if entry.body_size > 100000:
-                    file.write(str(entry.get_length()) + '\t' + str(entry.range_start) + '\t' + str(entry.range_end) + '\t' + str(entry.body_size) + '\n')
+                if entry.body_size > 10000:
+                    file.write(entry.get_url() + '\t' +  str(entry.get_length()) + '\t' + str(entry.body_size) + '\n')
             
         return True
 
@@ -417,7 +325,7 @@ class NetflixBrowser:
             js_script = file.read()
 
         try:
-            self.__firefox.execute_script(js_script)
+            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
         except:
             return False
 
@@ -435,7 +343,7 @@ class NetflixBrowser:
 
         print('Buffering ...')
         try:
-            while self.__firefox.execute_script(js_script) is not None:
+            while self.__browser.execute_script(config.javascript_dir + "/" + js_script) is not None:
                 print('...')
                 time.sleep(1)
         except:
@@ -459,7 +367,7 @@ class NetflixBrowser:
 
 
         try:
-            self.__firefox.execute_script(js_script)
+            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
         except Exception as e:
             print(e)
             return False
@@ -474,7 +382,7 @@ class NetflixBrowser:
         with open(filename, 'r') as file:
             js_script = file.read()
         try:
-            self.__firefox.execute_script(js_script)
+            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
         except:
             return False
 
@@ -495,7 +403,7 @@ class NetflixBrowser:
         with open(filename, 'r') as file:
             js_script = file.read()
         try:
-            self.__firefox.execute_script(js_script)
+            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
         except:
             return False
 
@@ -515,7 +423,7 @@ class NetflixBrowser:
         while not self.__is_page_loaded:
             # js boolean gets casted into python's bool
             try:
-                self.__is_page_loaded = self.__firefox.execute_script(js_script)
+                self.__is_page_loaded = self.__browser.execute_script(config.javascript_dir + "/" + js_script)
             except:
                 return False
 
@@ -536,7 +444,7 @@ class NetflixBrowser:
         """
         while retries > 0:
             try:
-                return self.__firefox.find_element_by_id(css_id)
+                return self.__browser.find_element_by_id(css_id)
             except:
                 # don't care, just retry
                 time.sleep(1)
@@ -556,7 +464,7 @@ class NetflixBrowser:
 
         while retries > 0:
             try:
-                return self.__firefox.find_element_by_class_name(css_class)
+                return self.__browser.find_element_by_class_name(css_class)
             except:
                 # don't care, just retry
                 time.sleep(1)
@@ -597,3 +505,6 @@ class HarEntry:
 
     def get_length(self):
         return self.range_end - self.range_start
+
+    def get_url(self):
+        return self.url
