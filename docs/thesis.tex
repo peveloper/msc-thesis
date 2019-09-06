@@ -234,6 +234,11 @@
   framexleftmargin=0pt,
 }
 
+\lstdefinestyle{snippet}{
+  basicstyle=\ttfamily,keywordstyle=\color{blue},
+  %backgroundcolor = \color{lightgray}
+} 
+
 \newenvironment{nsflalign*}
  {\setlength{\abovedisplayskip}{0pt}\setlength{\belowdisplayskip}{0pt}%
   \csname flalign*\endcsname}
@@ -241,6 +246,9 @@
 
  \lstnewenvironment{adu}[1][]{%
     \lstset{language=adu_lst,style=framedcode,#1}}{}
+
+ \lstnewenvironment{bash_script}[1][]{%
+     \lstset{language=bash,style=snippet, #1}}{}
 
 % \lstnewenvironment{sil}[1][]{%
 %     \lstset{language=sil,
@@ -317,6 +325,8 @@
   \small \upshape \url{pstefano@student.ethz.ch}}\par
 
   \vspace*{2em}{\large supervised by \\
+  \Large \itshape Prof. Ankit Singla
+  \Large \itshape \&
   \Large \itshape Melissa Licciardello}
 
   \vspace*{20em}{

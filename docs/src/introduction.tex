@@ -186,10 +186,10 @@ IP addresses.
 The ability to cluster people based on just their video-streaming habits, poses
 a potential threat for how the data could be processed and used by parties with
 access to it. One could imagine how government agencies could easily get in
-possess of sensitive information about the nature of the content a particular
-user is interested about, or how ISPs could profit from selling data profiles
-to advertisement companies that in turn would exploit their information to
-improve per-user recommendation algorithms.
+possession of sensitive information about the nature of the content a
+particular user is interested about, or how ISPs could profit from selling data
+profiles to advertisement companies that in turn would exploit their
+information to improve per-user recommendation algorithms.
 
 Considering this trend, it is for us crucial to investigate how parties that
 can have access to transport-layer information, (more details in
@@ -202,8 +202,8 @@ As previously mentioned, our work is mainly insipired by Reed et Al.'s
 \cite{netflix-real-time} research paper, in which they presented a novel method
 to de-anonymize encrypted netflix stream in real-time with limited hardware
 requirements. Their system was able to identify a video using uniquely TCP/IP
-headers, by making use of \texttt{adudump}, a program built on top of
-\emph{libpcap} \cite{libpcap}, a powerful C library for network traffic
+headers, by making use of \texttt{adudump}, a command-line program built on top
+of \emph{libpcap} \cite{libpcap}, a powerful C library for network traffic
 capture. They acquired for each video, metadata information with a tampering
 tool, and then matched adudump traces against with. The evaluation of their
 method revelaed that they could identify majority of videos by recording only
@@ -232,11 +232,11 @@ approach is presented in \Cref{sec:approach}
 
 \section{Structure of this Report}\label{sec:structure}
   
-In this section, we outline of the contents and the structure of this report.
+In this section, we outline the contents and the structure of this report.
 
 Chapter 1 introduced our motivation behind the project, presented featured work
-that influenced and inspire our approach, and it outlined the goals we would
-like to ultimately achieve.
+that influenced and inspire our approach, and listed the goals we would like to
+ultimately achieve.
 
 Chapter 2 presents the attack scenario from an ISP perspective, (the ISP acting
 as the adversary), the infrastructure needed to acquire the data, the nature of
@@ -244,18 +244,19 @@ the information that could be infered, and the consequences that might arise.
 
 Chapter 3 shows our version of the attack, in a different context, but up to
 some extent, with similar conditions to the one depicted in Chapter 2. It also
-higlights the similiarities and differences from the featured approaches we followed.
+higlights the similiarities and differences from the featured approaches we
+followed.
 
 In Chapter 4 we evaluate our system, we present results, and discuss the
 relevance of such a method.
 
-Chapter 5 tries to summarize and draw conclusion based on the claims made at
-the beginning of the project.
+Chapter 5 tries to summarize and draw conclusions based on the claims made at
+the beginning of this report.
 %TODO Chapter 2 - End to End Attack Scenario 
                %- Describe the attack scenario from the perspective of an ISP
                %- Describe the infrastructure
                %- Describe what kind of information the attacker is able to retrieve
-               %- Outlie the consequences of such an attack
+               %- Outline the consequences of such an attack
 %TODO Chapter 3 - Approach
                %- Present our version of the attack scenario
                %- Describe the infrastructure
