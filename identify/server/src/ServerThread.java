@@ -73,10 +73,13 @@ public class ServerThread implements Runnable {
 
 			Object[] shortList = windowDB.getRange(lowerKey, upperKey);
 
+            System.out.println(shortList.length);
+
 			int[] currentSegments = currentWindow.getSegments();
 
 			String result = "none";
 			for (int i = 0; i < shortList.length; i++) {
+                result = "";
 				Window compareWindow = (Window)shortList[i];
 				int compareStart = compareWindow.getStartIndex();
 				int[] compareSegments = compareWindow.getSegments();
@@ -91,7 +94,7 @@ public class ServerThread implements Runnable {
 
 				double segmentCorrel = correlator.correlation(currentDoubles, compareDoubles);
 
-				if (segmentCorrel > 0.9999) {
+				if (segmentCorrel > 0.9) {
                     System.out.println(segmentCorrel);
                     System.out.println(compareWindow.getTitle());
                     System.out.println(compareWindow.getBitrate());
@@ -105,14 +108,12 @@ public class ServerThread implements Runnable {
 
                     int key_idx = diff.indexOf(Collections.min(diff)); 
                     
-					result = compareWindow.getTitle() + "\t" + 
+					result += compareWindow.getTitle() + "\t" + 
                              compareWindow.getBitrate() + "\t" +
                              compareWindow.getStartIndex() + "\t" +
-                             //key_idx + "\t" +
-                             //compareWindow.toString() + "\t" +
-                             //currentWindow.toString() + "\t" +
-                             segmentCorrel;
-					break;
+                             compareWindow.toString() + "\t" +
+                             currentWindow.toString() + "\t" +
+                             segmentCorrel + "\t";
 				}
 			}
 			out.println(result);

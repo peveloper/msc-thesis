@@ -12,7 +12,7 @@ default() {
 
     FILE_NAME="$(basename -- $INPUT_FILE)"
     id=$(echo $FILE_NAME | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
-    
+    tp=$(echo $FILE_NAME | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $2}')
 
     echo $FILE_NAME
     # Get the ID of the captured movie
@@ -22,17 +22,19 @@ default() {
 
     echo $result
 
-    if [[ $length == 5 ]]; then 
+    if [[ $length == 7 ]]; then 
         returned_id=$(echo $result | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
         returned_tp=$(echo $result | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $2}')
         returned_bitrate=$(echo $result | awk '{print $2}')
         returned_idx_1=$(echo $result | awk '{print $3}')
         returned_idx_2=$(echo $result | awk '{print $4}')
-        elapsed_time=$(echo $result | awk '{print $5}')
+        key_1=$(echo $result | awk '{print $5}')
+        key_2=$(echo $result | awk '{print $6}')
+        elapsed_time=$(echo $result | awk '{print $7}')
 
         name="${returned_id}_${returned_tp}"
-        end=$((returned_idx_1 + WIN_SIZE))
-        end_capture=$((returned_idx_2 + WIN_SIZE))
+        end=$((returned_idx_1 + WIN_SIZE -1))
+        end_capture=$((returned_idx_2 + WIN_SIZE -1))
         
         db_idxs=$(seq -s, $returned_idx_1 1 $end)
         match=$([[ "$id" == "$returned_id" ]] && echo 1 || echo 0)
@@ -40,11 +42,25 @@ default() {
         #If match we plot the two window starting at indexes idx_1 idx_2
         if [[ $match == 1 ]];then
             db_path="../acquire_fingerprints/data/db.dat"
-            db_segments=$(cat $db_path | grep $name | cut -d '   ' -f3 | cut -d ',' -f$db_idxs)
-            capture_segments=$(cat $INPUT_FILE | awk -v idx="${returned_idx_2}" end="${end_capture}" '{if(NR >= idx && NR <= end) {printf("%s,", $6)}}')
-
+            timestamp=$(date +%s)
+            plot_file="match_${timestamp}_${returned_id}_${returned_tp}_${id}_${tp}_${KEY_SIZE}_${KEYMODE}"
+            seq 1 $WIN_SIZE > x
+            cat $db_path | grep $name | cut -d '	' -f3 | cut -d ',' -f$db_idxs | tr ',' '\n' > y_1
+            cat $INPUT_FILE | awk -v idx="${returned_idx_2}" -v end="${end_capture}" '{if(NR >= idx && NR <= end) {print $6}}' > y_2
+            paste x y_1 y_2 > plot_file
+            awk '{print sqrt(($2-$3)**2)}' plot_file > y_err
+            paste x y_1 y_2 y_err > plot_file
+            gnuplot -c window $name $FILE_NAME $returned_idx_1 $returned_idx_2 $WIN_SIZE $KEY_SIZE $KEY_MODE plot_file
+            RESULT=1
+        else
+            RESULT=0 
+            # False positive
+            continue
         fi
-
+        rm -rf x
+        rm -rf y_err
+        rm -rf y_1
+        rm -rf y_2
     fi
 
 }
@@ -108,7 +124,7 @@ if [[ $# == 5 ]]; then
     KEY_SIZE=$4
     KEY_MODE=$5
     
-    default $DB_PATH $INPUT_FILE $WIN_SIZE $KEY_SIZE $KEY_MODE
+    default $DB_PATH $INPUT_FILE $WIN_SIZE $KEY_SIZE $KEY_MODE RESULT
 else
 
     NR=$(cat $INPUT_FILE | wc -l)

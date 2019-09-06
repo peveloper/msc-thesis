@@ -5,93 +5,104 @@ from collections import deque
 from collections import OrderedDict
 
 class Tracker:
-  def __init__(self, ipPair, timestamp, windowSize):
-    self.addresses = ipPair
-    self.startTime = int(timestamp)
-    self.lastTime = timestamp
-    self.window = deque([],windowSize)
-    self.identified = False
-    self.videoTitle = ""
-    self.index = -1
-    self.current_index = -1
+
+    def __init__(self, ip_pair, capture_filename, window_size, key_mode):
+
+        self.addresses = ip_pair
+        self.window = deque([], window_size)
+
+        self.id = -1
+        self.bitrate = -1
+        self.index = -1
+        self.capture_index = -1
+        self.key = None
+        self.capture_key = None
+        self.correlation = -1
+        self.elapsed = -1
+        self.matches = []
+        self.filename = None
     
-  def addADU(self, timestamp, size, clientSocket, idx):
-    self.lastTime = timestamp
-    self.window.append(size)
+    def add_ADU(self, size, client_socket, idx):
+        self.window.append(size)
 
-    if (len(self.window) == windowSize) and (not self.identified):
-      output = str(self.window[0])
-      for x in range(1,windowSize):
-        output += "," + str(self.window[x])
-      clientSocket.send(output + "\n")
+        if (len(self.window) == window_size):
+            output = str(self.window[0])
+            for x in range(1, window_size):
+                output += "," + str(self.window[x])
+            client_socket.send(output + "\n")
 
-      result = clientSocket.recv(1024)
-      if result != "none\n":
-        if not self.identified:
-          tokens = result.split("\t")
-          self.identified = True
-          self.videoTitle = tokens[0]
-          self.bitrate = tokens[1]
-          self.index = tokens[2]
-          self.current_index = idx + 1 - windowSize
+            result = client_socket.recv(1024)
+            if result != "none\n":
 
-    
-  def getLastTime(self):
-    return self.lastTime
+                tokens = result.split("\t")[:-1]
+                
+                self.id = tokens[0]
+                self.bitrate = float(tokens[1])
+                self.index = int(tokens[2])
+                self.capture_index = idx + 1 - window_size
+                self.key = tokens[3].split()
+                self.capture_key = tokens[4].split()
+                self.correlation = float(tokens[5])
 
-  def printVideo(self):
-    if self.identified:
-      sys.stdout.write(self.videoTitle + "\t" + self.bitrate + "\t" + self.index + "\t" + str(self.current_index) + "\n")
+                if (self.filename == None):
+                    # Set filename to store matches
+                    matches_dir = "../matches"
+                    self.filename = "%s/%s_%d_%d_%d" % (matches_dir, capture_filename, window_size, len(self.key), key_mode)
+
+                self.dump_match()
+                return 1
+            return 0
+
+    def get_last_time(self):
+        return self.last_time
+
+    def dump_match(self):
+        record = ""
+        with(open(self.filename, 'a')) as f:
+            record += "%s" % self.id
+            record += "\t%.1f" % self.bitrate
+            record += "\t%d" % self.index
+            record += "\t%d" % self.capture_index
+            record += "\t%s" % ' '.join(self.key)
+            record += "\t%s" % ' '.join(self.capture_key)
+            record += "\t%.16f\n" % self.correlation
+            f.write(record)
+
 
 ### Main Program ###
 start_time = time.time()
 
-serverName = sys.argv[1]
-serverPort = int(sys.argv[2])
-windowSize = int(sys.argv[3])
+server_name = sys.argv[1]
+server_port = int(sys.argv[2])
+capture_filename = sys.argv[3]
+window_size = int(sys.argv[4])
+key_mode = int(sys.argv[5])
 
-clientSocket = socket(AF_INET, SOCK_STREAM)
-clientSocket.connect((serverName,serverPort))
+client_socket = socket(AF_INET, SOCK_STREAM)
+client_socket.connect((server_name,server_port))
 
-cnxTracker = OrderedDict()
+cnx_tracker = OrderedDict()
 
 for i, adu in enumerate(sys.stdin):
-  adu = adu.rsplit('\n') # remove trailing newline
-  fields = adu[0].split()
+    adu = adu.rsplit('\n') # remove trailing newline
+    fields = adu[0].split()
 
-  try:
-    currentTime = float(fields[0])
-    cnxKey = fields[1].split('>')[0].split('.')[0]
-    size = int(fields[2])
-  except ValueError:
-    continue
+    try:
+        cnx_key = fields[1].split('>')[0].split('.')[0]
+        size = int(fields[2])
+    except ValueError:
+        continue
 
-  if cnxKey in cnxTracker:
-    cnx = cnxTracker[cnxKey]
-    del cnxTracker[cnxKey]
-  else:
-    cnx = Tracker(cnxKey, currentTime, windowSize)
-
-
-  cnx.addADU(currentTime, size, clientSocket, i)    
-
-  cnxTracker[cnxKey] = cnx
-
-  deleteList = []
-  for k,v in cnxTracker.iteritems():
-    if ((currentTime - v.getLastTime()) > windowSize * 4):
-      deleteList.append(k)
+    if cnx_key in cnx_tracker:
+        cnx = cnx_tracker[cnx_key]
+        del cnx_tracker[cnx_key]
     else:
-      break
-  for key in deleteList:
-    cnxTracker[key].printVideo()
-    del cnxTracker[key]
-  
-clientSocket.send("complete\n")
-clientSocket.close()
+        cnx = Tracker(cnx_key, capture_filename, window_size, key_mode)
 
-for k,v in cnxTracker.iteritems():
-  v.printVideo()
+    cnx.add_ADU(size, client_socket, i)
+    cnx_tracker[cnx_key] = cnx
+
+client_socket.send("complete\n")
+client_socket.close()
 
 print(time.time() - start_time)
-
