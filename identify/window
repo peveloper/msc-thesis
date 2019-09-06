@@ -1,0 +1,10 @@
+plot_dir = "plots/"
+filename = sprintf("match_%s_%s_%d_%d_%d", ARG1, ARG2, ARG3, ARG4, ARG5)
+set xlabel "Segments"
+set ylabel "Size of ADUs (bytes)"
+set title "sprintf("Match between %s and %s, W = %d, K = %d", ARG1, ARG2, ARG3, ARG4)
+set term png
+set key outside
+set key right top
+set output sprintf("%s%s.png", plot_dir, filename)
+plot for [file in files] file with lines title file[1:strstrt(file, "_") - 1]."-".file[strstrt(file, "_") + 1:strlen(file)]

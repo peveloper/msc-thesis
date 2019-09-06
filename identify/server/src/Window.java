@@ -1,12 +1,21 @@
+import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+
 public class Window {
 
-  private Movie parentMovie;
+    private Movie parentMovie;
 	private short startIndex;
+    private short keySize;
+    private float [] key;
+    private int [] segments;
+    private short windowSize;
 
-	// Constructor
-	public Window(Movie parentMovie, short startIndex) {
+
+	public Window(Movie parentMovie, short startIndex, short keySize) {
 		this.parentMovie = parentMovie;
 		this.startIndex = startIndex;
+        this.keySize = keySize;
 	}
 
 	public String getTitle() {
@@ -25,34 +34,70 @@ public class Window {
 		return (int)startIndex;
 	}
 
-	public float[] getKey() {
-		int[] segments = parentMovie.getSegments();
+    public float[] generateKey(short keyMode) {
+        switch (keyMode) {
+            case 0:
+                return this.getTotalSizeKey();
+            default:
+                return this.getAVGBitrateKey();
+        }
+    }
 
-		float[] key = new float[6];
+    public float[] getAVGBitrateKey() {
+		segments = parentMovie.getSegments();
 
-		key[1] = 0.0f;
-		key[2] = 0.0f;
-		key[3] = 0.0f;
-		key[4] = 0.0f;
-		key[5] = 0.0f;
+        windowSize = parentMovie.getWindowSize();
 
-		for (int i = 0; i < 3; i++) {
-			key[1] += segments[startIndex +  0 + i];
-			key[2] += segments[startIndex +  3 + i];
-			key[3] += segments[startIndex +  6 + i];
-			key[4] += segments[startIndex +  9 + i];
-			key[5] += segments[startIndex + 12 + i];
-		}
+		key = new float[keySize];
 
-		key[0] = key[1] + key[2] + key[3] + key[4] + key[5];
+        int step = windowSize / keySize;
 
-		key[1] = key[1] / key[0];
-		key[2] = key[2] / key[0];
-		key[3] = key[3] / key[0];
-		key[4] = key[4] / key[0];
-		key[5] = key[5] / key[0];
+        for (int i = 0; i < windowSize; i++) {
+            int segment = segments[startIndex + i];
+            key[(i + 1) % keySize] += segment;
+            key[0] += segment;
+        }
+
+        //AVB Bitrate in WINDOW
+        key[0] = 2 * (key[0] / windowSize);
+
+        //Normalize by AVG Bitrate
+        for (int i = 1; i < keySize; i++ ){
+            key[i] = key[i] / key[0];
+        }
 
 		return key;
-	}
 
+    }
+
+    public float[] getTotalSizeKey() {
+        segments = parentMovie.getSegments();
+
+        windowSize = parentMovie.getWindowSize();
+
+        key = new float[keySize];
+
+        for (int i = 0; i < windowSize; i++) {
+            int segment = segments[startIndex + i];
+            key[(i + 1) % keySize] += segment;
+            key[0] += segment;
+        }
+
+        // Normalize by total size of segments in the window
+        for (int i = 1; i < keySize; i++ )
+            key[i] = key[i] / key[0];
+
+        return key;
+    }
+
+    @Override
+    public String toString() {
+        ArrayList<String> keyList = new ArrayList<String>();
+
+        for (int i = startIndex; i < windowSize; i++) {
+            keyList.add(String.valueOf(segments[i]));
+        }
+
+        return String.join(" ", keyList);
+    }
 }

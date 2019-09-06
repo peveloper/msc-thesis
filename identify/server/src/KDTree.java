@@ -1,7 +1,15 @@
+//http://robowiki.net/wiki/User:Chase-san/Kd-Tree
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
  
+/**
+ * This is a KD Bucket Tree, for fast sorting and searching of K dimensional
+ * data.
+ * 
+ * @author Chase
+ * 
+ */
 public class KDTree<T> {
 	protected static final int defaultBucketSize = 48;
  
@@ -9,24 +17,63 @@ public class KDTree<T> {
 	private final int bucketSize;
 	private NodeKD root;
  
-
+	/**
+	 * Constructor with value for dimensions.
+	 * 
+	 * @param dimensions
+	 *            - Number of dimensions
+	 */
 	public KDTree(int dimensions) {
 		this.dimensions = dimensions;
 		this.bucketSize = defaultBucketSize;
 		this.root = new NodeKD(0);
 	}
  
+	/**
+	 * Constructor with value for dimensions and bucket size.
+	 * 
+	 * @param dimensions
+	 *            - Number of dimensions
+	 * @param bucket
+	 *            - Size of the buckets.
+	 */
 	public KDTree(int dimensions, int bucket) {
 		this.dimensions = dimensions;
 		this.bucketSize = bucket;
 		this.root = new NodeKD(0);
 	}
  
+	/**
+	 * Add a key and its associated value to the tree.
+	 * 
+	 * @param key
+	 *            - Key to add
+	 * @param val
+	 *            - object to add
+	 */
 	public void add(float[] key, T val) {
 		root.addPoint(key, val);
 	}
  
+	/**
+	 * Returns all PointKD within a certain range defined by an upper and lower
+	 * PointKD.
+	 * 
+	 * @param low
+	 *            - lower bounds of area
+	 * @param high
+	 *            - upper bounds of area
+	 * @return - All PointKD between low and high.
+	 */
 	@SuppressWarnings("unchecked")
+	/*public List<T> getRange(float[] low, float[] high) {
+		Object[] objs = root.range(high, low);
+		ArrayList<T> range = new ArrayList<T>(objs.length);
+		for(int i=0; i<objs.length; ++i) {
+			range.add((T)objs[i]);
+		}
+		return range;
+	}*/
 	public Object[] getRange(float[] low, float[] high) {
 		return root.range(high, low);
 	}

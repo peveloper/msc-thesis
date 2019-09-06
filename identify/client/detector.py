@@ -5,39 +5,35 @@ from collections import deque
 from collections import OrderedDict
 
 class Tracker:
-  def __init__(self, ipPair, timestamp):
+  def __init__(self, ipPair, timestamp, windowSize):
     self.addresses = ipPair
     self.startTime = int(timestamp)
     self.lastTime = timestamp
-    self.window = deque([],15)
+    self.window = deque([],windowSize)
     self.identified = False
     self.videoTitle = ""
-    self.firstID = -1
+    self.index = -1
+    self.current_index = -1
     
-  def addADU(self, timestamp, size, clientSocket):
+  def addADU(self, timestamp, size, clientSocket, idx):
     self.lastTime = timestamp
     self.window.append(size)
 
-    print(self.window)
-
-    #if (len(self.window) == 15):
-    if (len(self.window) == 15) and (not self.identified):
+    if (len(self.window) == windowSize) and (not self.identified):
       output = str(self.window[0])
-      for x in range(1,15):
+      for x in range(1,windowSize):
         output += "," + str(self.window[x])
       clientSocket.send(output + "\n")
 
-      # sys.stderr.write("DEBUG_LOOKUP\n")
-
       result = clientSocket.recv(1024)
       if result != "none\n":
-        print('DIO')
-        sys.stderr.write(result)
         if not self.identified:
           tokens = result.split("\t")
           self.identified = True
           self.videoTitle = tokens[0]
-          self.firstID = int(self.lastTime - self.startTime)
+          self.bitrate = tokens[1]
+          self.index = tokens[2]
+          self.current_index = idx + 1 - windowSize
 
     
   def getLastTime(self):
@@ -45,28 +41,27 @@ class Tracker:
 
   def printVideo(self):
     if self.identified:
-      sys.stdout.write("ID:\t" + self.addresses + "\t" + str(self.startTime) + "\t" + str(int(self.lastTime)) + "\t" + str(self.firstID) + "\t" + self.videoTitle + "\n")
+      sys.stdout.write(self.videoTitle + "\t" + self.bitrate + "\t" + self.index + "\t" + str(self.current_index) + "\n")
 
 ### Main Program ###
 start_time = time.time()
 
 serverName = sys.argv[1]
 serverPort = int(sys.argv[2])
+windowSize = int(sys.argv[3])
 
 clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName,serverPort))
 
 cnxTracker = OrderedDict()
 
-for adu in sys.stdin:
+for i, adu in enumerate(sys.stdin):
   adu = adu.rsplit('\n') # remove trailing newline
-
-  print(adu)
   fields = adu[0].split()
 
   try:
     currentTime = float(fields[0])
-    cnxKey = fields[1].split(':')[0][:2]
+    cnxKey = fields[1].split('>')[0].split('.')[0]
     size = int(fields[2])
   except ValueError:
     continue
@@ -75,15 +70,16 @@ for adu in sys.stdin:
     cnx = cnxTracker[cnxKey]
     del cnxTracker[cnxKey]
   else:
-    cnx = Tracker(cnxKey, currentTime)
+    cnx = Tracker(cnxKey, currentTime, windowSize)
 
-  cnx.addADU(currentTime, size, clientSocket)    
+
+  cnx.addADU(currentTime, size, clientSocket, i)    
 
   cnxTracker[cnxKey] = cnx
 
   deleteList = []
   for k,v in cnxTracker.iteritems():
-    if ((currentTime - v.getLastTime()) > 120.0):
+    if ((currentTime - v.getLastTime()) > windowSize * 4):
       deleteList.append(k)
     else:
       break
@@ -97,4 +93,5 @@ clientSocket.close()
 for k,v in cnxTracker.iteritems():
   v.printVideo()
 
-print("--- %s seconds ---" % (time.time() - start_time))
+print(time.time() - start_time)
+

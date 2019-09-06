@@ -7,12 +7,16 @@ public class ServerThread implements Runnable {
 
 	private Socket clientSocket;
 	private KDTree windowDB;
+    private short windowSize;
+    private short keySize;
+    private short keyMode;
 
-	public static final int WINDOW_SIZE = 15;
-
-	public ServerThread(Socket clientSocket, KDTree windowDB) {
+	public ServerThread(Socket clientSocket, KDTree windowDB, short windowSize, short keySize, short keyMode) {
 		this.clientSocket = clientSocket;
 		this.windowDB = windowDB;
+        this.windowSize = windowSize;
+        this.keySize = keySize;
+        this.keyMode = keyMode;
 	}
 
 	@Override
@@ -35,6 +39,7 @@ public class ServerThread implements Runnable {
 		} 
 
 		while (in.hasNextLine()) {
+
 			String inputLine = in.nextLine();
 
 			if (inputLine.equals("complete")) {
@@ -42,32 +47,31 @@ public class ServerThread implements Runnable {
 				break;
 			}
 
-			Movie dummyMovie = new Movie("dummyTitle\t0\t" + inputLine, WINDOW_SIZE);
-			Window currentWindow = new Window(dummyMovie, (short)0);
-			
-			float[] key = currentWindow.getKey();
+            Movie sampleMovie = new Movie("sampleTitle\t0\t" + inputLine, windowSize);
+			Window currentWindow = new Window(sampleMovie, (short) 0, keySize);
 
-			float[] lowerKey = new float[]{key[0] - 0.0001f,
-			                               key[1] - 0.0001f,
-			                               key[2] - 0.0001f,
-			                               key[3] - 0.0001f,
-			                               key[4] - 0.0001f,
-			                               key[5] - 0.0001f};
+			float[] key = currentWindow.generateKey(keyMode);
 
-			float[] upperKey = new float[]{key[0] + 0.0001f,
-			                               key[1] + 0.0001f,
-			                               key[2] + 0.0001f,
-			                               key[3] + 0.0001f,
-			                               key[4] + 0.0001f,
-			                               key[5] + 0.0001f};
+            System.out.println(currentWindow.toString());
 
+            float [] lowerKey = new float [keySize];
+            float [] upperKey = new float [keySize];
 
-			System.out.println(key[0] + " " + upperKey[0] + " " + lowerKey[0]);
+            switch (keyMode) {
+                case 0:
+                    lowerKey[0] = key[0] - (windowSize * 525);
+                    upperKey[0] = key[0] + (windowSize * 525);
+                default:
+                    lowerKey[0] = key[0] - (50000);
+                    upperKey[0] = key[0] + (50000);
+            }
+
+            for (int i = 1; i < keySize; i++) {
+                lowerKey[i] = key[i] - 0.01f;
+                upperKey[i] = key[i] + 0.01f;
+            }
 
 			Object[] shortList = windowDB.getRange(lowerKey, upperKey);
-			System.out.println(shortList.length);
-
-
 
 			int[] currentSegments = currentWindow.getSegments();
 
@@ -77,8 +81,8 @@ public class ServerThread implements Runnable {
 				int compareStart = compareWindow.getStartIndex();
 				int[] compareSegments = compareWindow.getSegments();
 
-				double[] currentDoubles = new double[15];
-				double[] compareDoubles = new double[15];
+				double[] currentDoubles = new double[windowSize];
+				double[] compareDoubles = new double[windowSize];
 
 				for (int y = 0; y < currentSegments.length; y++) {
 					currentDoubles[y] = (double)currentSegments[y];
@@ -88,10 +92,26 @@ public class ServerThread implements Runnable {
 				double segmentCorrel = correlator.correlation(currentDoubles, compareDoubles);
 
 				if (segmentCorrel > 0.9999) {
+                    System.out.println(segmentCorrel);
+                    System.out.println(compareWindow.getTitle());
+                    System.out.println(compareWindow.getBitrate());
+
+                    float compareWindowKey[] = compareWindow.generateKey(keyMode);
+                    ArrayList<Float> diff = new ArrayList<Float>();
+
+                    for(int j =0; j < key.length; j++) {
+                        diff.add(Math.abs(key[j] - compareWindowKey[j]));
+                    }
+
+                    int key_idx = diff.indexOf(Collections.min(diff)); 
+                    
 					result = compareWindow.getTitle() + "\t" + 
-					         compareWindow.getStartIndex() + "\t" +
- 					         (currentWindow.getKey()[0] - compareWindow.getKey()[0]) + "\t" +
-					         segmentCorrel;
+                             compareWindow.getBitrate() + "\t" +
+                             compareWindow.getStartIndex() + "\t" +
+                             //key_idx + "\t" +
+                             //compareWindow.toString() + "\t" +
+                             //currentWindow.toString() + "\t" +
+                             segmentCorrel;
 					break;
 				}
 			}
