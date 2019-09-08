@@ -1,70 +1,46 @@
 #!/bin/bash
 
-db_path=$1
-input_file=$2
-
-mismatches=0
-matches=0
-collisions=0
-collisions_array=()
-accuracy_header=0
-capture_filename=""
-
 : '
 plot accuracy in terms of:
 # matches, #mismatches, #collisions (*)
 '
-generate_accuracy_plot_fixed_key() {
+generate_accuracy_plot() {
+
+    local capture_id=$1
+    local capture_tp=$2
+    local win_size=$3
+    local key_size=$4
+    local key_mode=$5
+    local key_delta=$6
+    local matches=$7
+    local collisions=$8
+    local mismatches=$9
 
     # generate accuracy_plot_file
-    if (( accuracy_header == 0 ));
-    then
-        echo $accuracy_header
-        acc_plot_file="acc_${capture_id}_${capture_tp}_${key_mode}_${key_delta}_${threshold}"
-        echo -e "W_SIZE\tMatches\tCollisions\tMismatches\n" > $acc_plot_file
-        accuracy_header=1
+    if [[ -z "acc_${capture_id}_${capture_tp}_${key_mode}_${key_delta}_${threshold}" ]]; then
+        break
+    else
+        local plot_filename="acc_${capture_id}_${capture_tp}_${key_mode}_${key_delta}_${threshold}"
+        echo -e "Window Size\tMatches\tCollisions\tMismatches\n" > $plot_filename
     fi
 
     #TODO(?) take the percentage 
 
-    x="${win_size}(${key_size})"
+    x="${win_size} (${key_size})"
     y_1=$matches
     y_2=$collisions
     y_3=$mismatches
 
-    paste <(echo "$x") <(echo "$y_1") <(echo "$y_2") <(echo "$y_3") >> $acc_plot_file
+    paste <(echo "$x") <(echo "$y_1") <(echo "$y_2") <(echo "$y_3") >> $plot_filename
 
 }
-export -f generate_accuracy_plot_fixed_key
+export -f generate_accuracy_plot
 
 plot_accuracy() {
     gnuplot -c accuracy $1 $2 $3 $4 $5
     rm -rf $1
 }
 export -f plot_accuracy
-
-generate_accuracy_plot_fixed_win() {
-    #TODO (?) Maybe remove this function!
-    #echo $accuracy_header
-    
-    # generate accuracy_plot_file
-    if (( accuracy_header == 0 ));
-    then
-        acc_plot_file="acc_${capture_id}_${capture_tp}_${win_size}_${key_mode}_${key_delta}"
-        echo -e "W_SIZE\t#MATCHES\t#COLLISIONS\t#MISMATCHES\n" > fixed_win_acc_plot_file
-        accuracy_header=1
-    fi
-
-    #TODO(?) take the percentage 
-
-    x=$win_size
-    y_1=$matches
-    y_2=$collisions
-    y_3=$mismatches
-
-    paste <(echo "$x") <(echo "$y_1") <(echo "$y_2") <(echo "$y_3") >> fixed_win_acc_plot_file
-}
-export -f generate_accuracy_plot_fixed_win
 
 : '
 (*) collision
@@ -82,18 +58,23 @@ default() {
     - collisions: # different bandwidths correctly matching video capture
     '
 
-    db_path=$1
-    input_file=$2
-    win_size=$3
-    key_size=$4
-    key_mode=$5
-    key_delta=$6
-    threshold=$7
+    local db_path=$1
+    local input_file=$2
+    local win_size=$3
+    local key_size=$4
+    local key_mode=$5
+    local key_delta=$6
+    local threshold=$7
+
+    local matches=0
+    local collisions=0
+    local mismatches=0
+    local collisions_array=()
 
     # get id and enforced bandwidth of the current capture
-    capture_filename="$(basename -- $input_file)"
-    capture_id=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
-    capture_tp=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $2}')
+    local capture_filename="$(basename -- $input_file)"
+    local capture_id=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
+    local capture_tp=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $2}')
 
     # query the kd tree 
     ./exec_query.sh $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
@@ -103,7 +84,7 @@ default() {
     if [ -f matches/$match_filename ];
     then
         tps=""
-        i=0
+        local i=0
 
         # check for matches, count the # of collisions and the number of mismatches
         while IFS= read -r line; do 
@@ -121,18 +102,16 @@ default() {
             key=$(echo $line | awk -v len="${key_size}" '{for(i=5; i < 5+len; i++) {print $i}}')
             capture_key=$(echo $line | awk -v len="${key_size}" '{for(i=5+len; i < 5+(2*len); i++) {print $i}}')
             correlation=$(echo $line | awk -v len="${key_size}" '{print $(5+(2*len))}')
-
             file_name="${id}_${tp}"
             end=$((index + win_size - 1))
             capture_end=$((capture_index + win_size - 1))
-
             match=$([[ "$id" == "$capture_id" ]] && echo 1 || echo 0)
 
 
             # check if match
             if [[ $match == 1 ]]; then
                 idxs=$(seq -s, $index 1 $end)
-                plot_file="match_${i}_${id}_${tp}_${capture_id}_${capture_tp}_${win_size}_${key_size}_${key_mode}_${key_delta}"
+                local plot_filename="match_${i}_${id}_${tp}_${capture_id}_${capture_tp}_${win_size}_${key_size}_${key_mode}_${key_delta}"
 
                 ((i++))
 
@@ -177,13 +156,7 @@ default() {
             done
         fi
 
-        generate_accuracy_plot_fixed_key
-        # generateaccuracy_plot_fixed_win
-
-        mismatches=0
-        matches=0
-        collisions=0
-        collisions_array=()
+        generate_accuracy_plot $capture_id $capture_tp $win_size $key_size $key_mode $key_delta $matches $collisions $mismatches
     fi
 
 }
@@ -214,6 +187,9 @@ export -f get_factors
 export -f default
 
 main() {
+
+    db_path=$1
+    input_file=$2
 
     if [[ $# == 7 ]]; then
 
@@ -278,9 +254,9 @@ main() {
 export -f main
 
 evaluate_dataset() {
-    continue
+    main "$@"
 }
-
-main "$@"
+export -f evaluate_dataset
 
 capture_dir="../acquire_fingerprints/capture_log/"
+ls $capture dir | parallel  evaluate_dataset "~/db.dat" $1
