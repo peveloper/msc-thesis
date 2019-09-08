@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 class Tracker:
 
-    def __init__(self, ip_pair, capture_filename, window_size, key_mode):
+    def __init__(self, ip_pair, capture_filename, window_size, key_mode, key_delta):
 
         self.addresses = ip_pair
         self.window = deque([], window_size)
@@ -29,28 +29,34 @@ class Tracker:
             output = str(self.window[0])
             for x in range(1, window_size):
                 output += "," + str(self.window[x])
-            client_socket.send(output + "\n")
 
+            client_socket.send(output + "\n")
             result = client_socket.recv(1024)
+
             if result != "none\n":
 
                 tokens = result.split("\t")[:-1]
-                
-                self.id = tokens[0]
-                self.bitrate = float(tokens[1])
-                self.index = int(tokens[2])
-                self.capture_index = idx + 1 - window_size
-                self.key = tokens[3].split()
-                self.capture_key = tokens[4].split()
-                self.correlation = float(tokens[5])
+                if(len(tokens) > 0):
+                    
+                    self.id = tokens[0]
+                    self.bitrate = float(tokens[1])
+                    self.index = int(tokens[2])
+                    self.capture_index = idx + 1 - window_size
+                    self.key = tokens[3].split()
+                    self.capture_key = tokens[4].split()
+                    self.correlation = float(tokens[5])
 
-                if (self.filename == None):
-                    # Set filename to store matches
-                    matches_dir = "../matches"
-                    self.filename = "%s/%s_%d_%d_%d" % (matches_dir, capture_filename, window_size, len(self.key), key_mode)
+                    if (self.filename == None):
+                        # Set filename to store matches
+                        matches_dir = "../matches"
+                        self.filename = "%s/%s_%d_%d_%d_%d" % (matches_dir, capture_filename, window_size, len(self.key), key_mode, key_delta)
 
-                self.dump_match()
-                return 1
+                        # Write header
+                        with(open(self.filename, 'w')) as f:
+                            f.write("ID\tBITRATE\tSTART_IDX\tCAPTURE_START_IDX\tKEY\tCAPTURE_KEY\tCORRELATION\n")
+
+                    self.dump_match()
+                    return 1
             return 0
 
     def get_last_time(self):
@@ -77,6 +83,7 @@ server_port = int(sys.argv[2])
 capture_filename = sys.argv[3]
 window_size = int(sys.argv[4])
 key_mode = int(sys.argv[5])
+key_delta = int(sys.argv[6])
 
 client_socket = socket(AF_INET, SOCK_STREAM)
 client_socket.connect((server_name,server_port))
@@ -97,12 +104,10 @@ for i, adu in enumerate(sys.stdin):
         cnx = cnx_tracker[cnx_key]
         del cnx_tracker[cnx_key]
     else:
-        cnx = Tracker(cnx_key, capture_filename, window_size, key_mode)
+        cnx = Tracker(cnx_key, capture_filename, window_size, key_mode, key_delta)
 
     cnx.add_ADU(size, client_socket, i)
     cnx_tracker[cnx_key] = cnx
 
 client_socket.send("complete\n")
 client_socket.close()
-
-print(time.time() - start_time)

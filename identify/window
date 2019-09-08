@@ -1,17 +1,17 @@
 plot_dir = "plots/"
 t1=ARG1[1:strstrt(ARG1, "_") - 1]."-".ARG1[strstrt(ARG1, "_") + 1:strlen(ARG1)]
 t2=ARG2[1:strstrt(ARG2, "_") - 1]."-".ARG2[strstrt(ARG2, "_") + 1:strlen(ARG2)]
-filename = sprintf("match_%s_%s_%s_%s_%s", t1, t2, ARG5, ARG6, ARG7)
+filename = ARG9
 set xlabel "Segments"
 set ylabel "Size of ADUs (bytes)"
-set title sprintf("[MODE %s]: Match between %s [%d-%d] and %s [%d-%d], W = %s, K = %s", ARG7, t1, ARG3+0, ARG3+(ARG5 + 0), t2, ARG4+0, ARG4+(ARG5 + 0), ARG5, ARG6)
+set title sprintf("[%d-%d] and [%d-%d], W = %s, K = %s, DELTA = %s", ARG3+0, ARG3+(ARG5 + 0), ARG4+0, ARG4+(ARG5 + 0), ARG5, ARG6, ARG7, ARG8)
 set term png
 set key outside
 set key right top
 set output sprintf("%s%s.png", plot_dir, filename)
-file=ARG8
+file="plot_file"
 end=ARG5+0
 set style histogram rowstack
 set style histogram rowstack
 set style fill solid 0.3
-plot [0:end+1] file u 1:2 t t1 w boxes, '' u 1:3 t t2 w boxes
+plot [0:end+1] file u 1:2 t t1, '' u 1:3 t t2
