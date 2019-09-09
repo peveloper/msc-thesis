@@ -15,29 +15,29 @@ generate_accuracy_plot() {
     local matches=$7
     local collisions=$8
     local mismatches=$9
+    local plot_filename=acc_${capture_id}_${capture_tp}_${key_mode}_${key_delta}_${threshold}
 
     # generate accuracy_plot_file
-    if [[ -z "acc_${capture_id}_${capture_tp}_${key_mode}_${key_delta}_${threshold}" ]]; then
-        break
-    else
-        local plot_filename="acc_${capture_id}_${capture_tp}_${key_mode}_${key_delta}_${threshold}"
-        echo -e "Window Size\tMatches\tCollisions\tMismatches\n" > $plot_filename
+    if [[ ! -f $plot_filename ]]; then
+        printf "Window\tMatches\tCollisions\tMismatches\n" > $plot_filename
     fi
+
 
     #TODO(?) take the percentage 
 
-    x="${win_size} (${key_size})"
+    x="${win_size}(${key_size})"
     y_1=$matches
     y_2=$collisions
     y_3=$mismatches
 
     paste <(echo "$x") <(echo "$y_1") <(echo "$y_2") <(echo "$y_3") >> $plot_filename
 
+    echo $plot_filename
 }
 export -f generate_accuracy_plot
 
 plot_accuracy() {
-    gnuplot -c accuracy $1 $2 $3 $4 $5
+    gnuplot -c accuracy "$@"
     rm -rf $1
 }
 export -f plot_accuracy
@@ -65,6 +65,7 @@ default() {
     local key_mode=$5
     local key_delta=$6
     local threshold=$7
+    local plot_file
 
     local matches=0
     local collisions=0
@@ -79,7 +80,7 @@ default() {
     # query the kd tree 
     ./exec_query.sh $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
 
-    match_filename="${capture_filename}_${win_size}_${key_size}_${key_mode}_${key_delta}"
+    local match_filename="${capture_filename}_${win_size}_${key_size}_${key_mode}_${key_delta}"
 
     if [ -f matches/$match_filename ];
     then
@@ -111,7 +112,7 @@ default() {
             # check if match
             if [[ $match == 1 ]]; then
                 idxs=$(seq -s, $index 1 $end)
-                local plot_filename="match_${i}_${id}_${tp}_${capture_id}_${capture_tp}_${win_size}_${key_size}_${key_mode}_${key_delta}"
+                #local plot_filename="match_${i}_${id}_${tp}_${capture_id}_${capture_tp}_${win_size}_${key_size}_${key_mode}_${key_delta}"
 
                 ((i++))
 
@@ -144,19 +145,14 @@ default() {
 
         IFS='_' read -ra collisions_array <<< "$tps"
 
-        echo $matches "matches."
-        echo $mismatches "mismatches."
-
         if (( ${#collisions_array[@]} > 1))
         then
             collisions=${#collisions_array[@]} 
-            echo $collisions " collisions involving bandwidths:"
-            for collision in "${collisions_array[@]}"; do
-                echo $collision
-            done
         fi
 
-        generate_accuracy_plot $capture_id $capture_tp $win_size $key_size $key_mode $key_delta $matches $collisions $mismatches
+        my_result=$(generate_accuracy_plot $capture_id $capture_tp $win_size $key_size $key_mode $key_delta $matches $collisions $mismatches)
+       
+        echo $my_result
     fi
 
 }
@@ -166,21 +162,13 @@ get_factors() {
     : '
     Compute factors of a given number
     '
+    n=$1
 
-    num=$1
-    for (( i=2; i<=$1; i++ ));do
-        while [ $((num%$i)) == 0 ];do
-            if [ -z "$fs" ]
-            then
-                fs=$(echo -e "${fs}${i}")
-            else
-                fs=$(echo -e "${i}\n")
-            fi
-            echo $fs
-            num=$((num/$i))
-        done
+    for i in $(seq 1 $n)
+    do
+        [ $(expr $n / $i \* $i) == $n ] && echo $i
     done
-    #echo $fs
+
 }
 
 export -f get_factors
@@ -202,7 +190,7 @@ main() {
         key_delta=$6
         threshold=$7
 
-        default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
+        default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold plot_file
 
     elif [[ $# == 6 ]]; then
 
@@ -216,6 +204,7 @@ main() {
         key_delta=$4
         max_win=$5
         threshold=$6
+        capture_filename="$(basename -- $input_file)"
 
         if [ -z "$max_win" ];
         then
@@ -224,39 +213,50 @@ main() {
             nr=$max_win
         fi
 
-        acc_plot_file=""
+
+        capture_id=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
+        capture_tp=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $2}')
+
+        echo -e "Analysing ID ${capture_id} recorded at ${capture_tp}\n"
+
         for((win_size=2; win_size < nr; win_size++))
         do
-            capture_filename=""
-            echo $win_size
-
-            get_factors $win_size | sort | uniq
             key_sizes=$(get_factors $win_size | sort | uniq)
+            echo $key_sizes
             number_of_factors=$(wc -w <<< "$key_sizes")
 
             if (( number_of_factors > 1 )); then
                 for key_size in $key_sizes; do
                     ((++key_size))
-                    default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
+                    echo "WIN_SIZE ${win_size} KEY_SIZE ${key_size}"
+                    if [[ -z ${plot_file} ]];then
+                        plot_file=$(default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold)
+                    else
+                        default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
+                    fi
                 done
             else
                 # prime number of segments in window
                 key_size=$((win_size + 1))
-                default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
+                echo "WIN_SIZE ${win_size} KEY_SIZE ${key_size}"
+                if [[ -z ${plot_file} ]];then
+                    plot_file=$(default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold)
+                else
+                    default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
+                fi
             fi
         done
 
-        capture_filename="$(basename -- $input_file)"
-        #echo $capture_filename
-        plot_accuracy $acc_plot_file $capture_filename $key_mode $key_delta $threshold
+        plot_accuracy $plot_file $capture_filename $key_mode $key_delta $threshold
     fi
 }
 export -f main
 
 evaluate_dataset() {
-    main "$@"
+    main "$@" 
 }
 export -f evaluate_dataset
 
-capture_dir="../acquire_fingerprints/capture_log/"
-ls $capture dir | parallel  evaluate_dataset "~/db.dat" $1
+evaluate_dataset "$@"
+#capture_dir="../acquire_fingerprints/capture_log/"
+#ls $capture_dir | parallel --dry-run evaluate_dataset $1 {} $2 $3 $4 $5
