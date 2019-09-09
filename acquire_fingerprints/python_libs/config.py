@@ -9,13 +9,15 @@ class StaticConfig:
         self.capture_duration = 120
         self.wait_after_throughput_adjustment = 20
         self.throughputs = [600, 800, 1200, 2000, 3500, 4200, 4800, 5500, 6500, 7050, 10000, 15000, 20000]
-
+        self.capture_throughputs = [500, 1000, 3000, 5000, 6000, 8000, 12000, 18000]
 
         self.adudump_dir = self.root_dir + "/" + "tools/adudump"
         self.config_dir = self.root_dir + "/" + "config"
         self.temp_dir = self.root_dir + "/" + "temp"
         self.log_dir = self.root_dir + "/" + "log"
-        self.har_dir = self.root_dir + "/" + "har"
+        self.log_capture_dir = self.root_dir + "/" + "capture_log"
+        self.har_dir = self.root_dir + "/" + "capture_har"
+        self.har_capture_dir = self.root_dir + "/" + "capture_har"
         self.error_dir = self.root_dir + "/" + "error"
         self.screenshots_dir = self.root_dir + "/" + "screenshots"
         self.titles_dir = self.root_dir + "/" + "netflix_titles"
@@ -31,7 +33,7 @@ class StaticConfig:
             'Action',
             'Dramas',
             'Horror Movies',
-            'Crime Movies'
+            'Crime Movies',
             'Comedies',
             'Thrillers',
             'Sci-Fi & Fantasy',

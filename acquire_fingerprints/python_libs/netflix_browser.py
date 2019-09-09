@@ -8,7 +8,7 @@ import psutil
 import numpy as np
 
 from selenium import webdriver
-from selenium.webdriver.browser.options import Options
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -17,7 +17,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains 
 from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.webdriver.browser.options import Log
 from browsermobproxy import Server
 from urllib.parse import urlparse
 from typing import Optional
@@ -61,9 +60,6 @@ class NetflixBrowser:
         """
         construct the selenium browser browser
         """
-
-        log = Log()
-        log.level = "TRACE"
 
         self.__server = Server("tools/browsermob-proxy-2.1.4/bin/browsermob-proxy")
         self.__server.start()
@@ -142,7 +138,7 @@ class NetflixBrowser:
         self.__browser.get(video_url)
 
         try:
-            WebDriverWait(self.__browser, 60).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
+            WebDriverWait(self.__browser, 120).until(EC.presence_of_element_located((By.ID, "appMountPoint")))
         except TimeoutException:
             print('Page loading timeout. Exiting')
             return False
@@ -190,11 +186,11 @@ class NetflixBrowser:
 
     def __get_session_summary(self):
 
-        with open('session_summary.js', 'r') as file:
+        with open(config.javascript_dir + "/" + 'session_summary.js', 'r') as file:
             js_script = file.read()
 
         try:
-            summary =  self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+            summary =  self.__browser.execute_script(js_script)
             print(summary)
         except:
             return False
@@ -205,14 +201,14 @@ class NetflixBrowser:
 
     def __stop_playback(self):
 
-        with open('stop_video.js', 'r') as file:
+        with open(config.javascript_dir + "/" + 'stop_video.js', 'r') as file:
             js_script = file.read()
 
         buffered = 0
         init = -1
         try:
             while buffered < 480000:
-                buffered = self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+                buffered = self.__browser.execute_script(js_script)
                 print('Buffered %d / 480000' % buffered)
         except:
             return False
@@ -227,13 +223,13 @@ class NetflixBrowser:
         calls prevent_more_requests.js, block every send() method
         """
 
-        with open('prevent_more_requests.js', 'r') as file:
+        with open(config.javascript_dir + "/" + 'prevent_more_requests.js', 'r') as file:
             js_script = file.read()
 
         ready = False
         while not ready: 
             try:
-                ready = self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+                ready = self.__browser.execute_script(js_script)
             except Exception as e:
                 print(e)
                 return False
@@ -321,11 +317,11 @@ class NetflixBrowser:
         """
 
         print('Rewind ...')
-        with open('rewind.js', 'r') as file:
+        with open(config.javascript_dir + "/" + 'rewind.js', 'r') as file:
             js_script = file.read()
 
         try:
-            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+            self.__browser.execute_script(js_script)
         except:
             return False
 
@@ -338,12 +334,12 @@ class NetflixBrowser:
 
         """
 
-        with open('player_state.js', 'r') as file:
+        with open(config.javascript_dir + "/" + 'player_state.js', 'r') as file:
             js_script = file.read()
 
         print('Buffering ...')
         try:
-            while self.__browser.execute_script(config.javascript_dir + "/" + js_script) is not None:
+            while self.__browser.execute_script(js_script) is not None:
                 print('...')
                 time.sleep(1)
         except:
@@ -362,12 +358,10 @@ class NetflixBrowser:
         """
 
         print('Seeking ...')
-        with open('seek_video.js', 'r') as file:
+        with open(config.javascript_dir + "/" + 'seek_video.js', 'r') as file:
             js_script = file.read()
-
-
         try:
-            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+            self.__browser.execute_script(js_script)
         except Exception as e:
             print(e)
             return False
@@ -377,12 +371,12 @@ class NetflixBrowser:
 
     def __play_video(self):
 
-        filename = 'play_video.js'
+        filename = config.javascript_dir + "/" + 'play_video.js'
 
         with open(filename, 'r') as file:
             js_script = file.read()
         try:
-            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+            self.__browser.execute_script(js_script)
         except:
             return False
 
@@ -397,13 +391,13 @@ class NetflixBrowser:
         :return True if succesfull
         """
 
-        filename = 'pause_video.js'
+        filename = config.javascript_dir + "/" + 'pause_video.js'
 
         print('Starting playback ...')
         with open(filename, 'r') as file:
             js_script = file.read()
         try:
-            self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+            self.__browser.execute_script(js_script)
         except:
             return False
 
@@ -416,14 +410,14 @@ class NetflixBrowser:
         :return True if the player is loaded, False otherwise
         """
 
-        with open('page_status.js', 'r') as file:
+        with open(config.javascript_dir + "/" + 'page_status.js', 'r') as file:
             js_script = file.read()
 
         print('Loading Netflix video player ...')
         while not self.__is_page_loaded:
             # js boolean gets casted into python's bool
             try:
-                self.__is_page_loaded = self.__browser.execute_script(config.javascript_dir + "/" + js_script)
+                self.__is_page_loaded = self.__browser.execute_script(js_script)
             except:
                 return False
 

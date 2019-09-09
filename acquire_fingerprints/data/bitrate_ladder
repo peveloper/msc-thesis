@@ -1,6 +1,6 @@
+file=ARG1
+plot_dir=ARG2
 set term png
-plot_dir = ARG1
-file = ARG2
 filename = substr(file, 0, strstrt(file, "_") - 1)
 set xlabel "Enforced Throughputs (bits/s)" offset -0.1,0,0
 set ylabel "AVG Bitrate (bits/s)"

@@ -19,7 +19,7 @@ inventory = Inventory()
 video_db = inventory.get_movies()
 genres = inventory.get_genres() 
 video_ids = inventory.get_selection_of_movies_by_genre()
-
+         
 print("Capturing %d titles at %d bandwidth levels" % (len(video_ids), len(config.throughputs)))
 
 # calculate length of capture for user
