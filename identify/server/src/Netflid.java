@@ -20,7 +20,11 @@ public class Netflid {
 
             final short KEY_MODE = Short.parseShort(args[3]);
 
-            KDTree windowDB = new KDTree(KEY_SIZE, 48);
+            final short KEY_DELTA = Short.parseShort(args[4]);
+
+            final float THRESHOLD = Float.parseFloat(args[5]);
+
+            KDTree windowDB = new KDTree(KEY_SIZE, 1024);
 
             FileInputStream movieListIS = null;
 
@@ -65,7 +69,7 @@ public class Netflid {
                 try { 
                     clientSocket = serverSocket.accept(); 
 
-                    ServerThread serverThread = new ServerThread(clientSocket, windowDB, WINDOW_SIZE, KEY_SIZE, KEY_MODE);
+                    ServerThread serverThread = new ServerThread(clientSocket, windowDB, WINDOW_SIZE, KEY_SIZE, KEY_MODE, KEY_DELTA, THRESHOLD);
 
                     Thread serverThread1 = new Thread(serverThread, "server");
 

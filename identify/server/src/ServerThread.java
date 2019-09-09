@@ -10,13 +10,18 @@ public class ServerThread implements Runnable {
     private short windowSize;
     private short keySize;
     private short keyMode;
+    private short keyDelta;
+    private float threshold;
 
-	public ServerThread(Socket clientSocket, KDTree windowDB, short windowSize, short keySize, short keyMode) {
+
+	public ServerThread(Socket clientSocket, KDTree windowDB, short windowSize, short keySize, short keyMode, short keyDelta, float threshold) {
 		this.clientSocket = clientSocket;
 		this.windowDB = windowDB;
         this.windowSize = windowSize;
         this.keySize = keySize;
         this.keyMode = keyMode;
+        this.keyDelta = keyDelta;
+        this.threshold = threshold;
 	}
 
 	@Override
@@ -59,11 +64,11 @@ public class ServerThread implements Runnable {
 
             switch (keyMode) {
                 case 0:
-                    lowerKey[0] = key[0] - (windowSize * 525);
-                    upperKey[0] = key[0] + (windowSize * 525);
+                    lowerKey[0] = key[0] - (windowSize * keyDelta);
+                    upperKey[0] = key[0] + (windowSize * keyDelta);
                 default:
-                    lowerKey[0] = key[0] - (50000);
-                    upperKey[0] = key[0] + (50000);
+                    lowerKey[0] = key[0] - (keyDelta);
+                    upperKey[0] = key[0] + (keyDelta);
             }
 
             for (int i = 1; i < keySize; i++) {
@@ -73,10 +78,13 @@ public class ServerThread implements Runnable {
 
 			Object[] shortList = windowDB.getRange(lowerKey, upperKey);
 
+            System.out.println(shortList.length);
+
 			int[] currentSegments = currentWindow.getSegments();
 
 			String result = "none";
 			for (int i = 0; i < shortList.length; i++) {
+                result = "";
 				Window compareWindow = (Window)shortList[i];
 				int compareStart = compareWindow.getStartIndex();
 				int[] compareSegments = compareWindow.getSegments();
@@ -91,7 +99,7 @@ public class ServerThread implements Runnable {
 
 				double segmentCorrel = correlator.correlation(currentDoubles, compareDoubles);
 
-				if (segmentCorrel > 0.9999) {
+				if (segmentCorrel > threshold) {
                     System.out.println(segmentCorrel);
                     System.out.println(compareWindow.getTitle());
                     System.out.println(compareWindow.getBitrate());
@@ -105,14 +113,12 @@ public class ServerThread implements Runnable {
 
                     int key_idx = diff.indexOf(Collections.min(diff)); 
                     
-					result = compareWindow.getTitle() + "\t" + 
+					result += compareWindow.getTitle() + "\t" + 
                              compareWindow.getBitrate() + "\t" +
                              compareWindow.getStartIndex() + "\t" +
-                             //key_idx + "\t" +
-                             //compareWindow.toString() + "\t" +
-                             //currentWindow.toString() + "\t" +
-                             segmentCorrel;
-					break;
+                             compareWindow.toString() + "\t" +
+                             currentWindow.toString() + "\t" +
+                             segmentCorrel + "\t";
 				}
 			}
 			out.println(result);

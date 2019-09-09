@@ -59,9 +59,9 @@ public class Window {
         }
 
         //AVB Bitrate in WINDOW
-        key[0] = 2 * (key[0] / windowSize);
+        key[0] = 8 * (key[0] / windowSize / 4);
 
-        //Normalize by AVG Bitrate
+        //Normalize by AVG Bitrate 
         for (int i = 1; i < keySize; i++ ){
             key[i] = key[i] / key[0];
         }
@@ -94,8 +94,8 @@ public class Window {
     public String toString() {
         ArrayList<String> keyList = new ArrayList<String>();
 
-        for (int i = startIndex; i < windowSize; i++) {
-            keyList.add(String.valueOf(segments[i]));
+        for (int i = 0; i < keySize; i++) {
+            keyList.add(String.valueOf(key[i]));
         }
 
         return String.join(" ", keyList);
