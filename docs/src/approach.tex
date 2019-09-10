@@ -153,13 +153,20 @@ described in \Cref{dns}.
 \subsection{Automated streaming with Selenium}
 
 In order to instrument the browser to automatically stream each title, we have
-developed a script that uses \texttt{Selenium} library \cite{selenium}.
-
+developed a script that uses the \texttt{Selenium} library \cite{selenium}.
 Selenium provides a \texttt{WebDriver} interface capable of controlling various
 browsers such as Chrome, Opera, Safari, Firefox and others. One must use the
 appropriate version of the WebDriver, according to the browser of choice and
 its version. For convenience of use, and support, we have chosen to work with
 GoogleChrome and its ChromeDriver interface.
+
+In order to asses the quality of adudump's inference of video segment sizes, we
+compare the recorded traffic with HAR \cite{har} metadata. The format of each
+HAR file is a json object containing content and session data acquired during
+the playback of the video. For this task, we use \texttt{Browsermob}
+\cite{browsermob}, a webproxy built to work with Selenium. A more detailed
+explanation of the comparison between recorded traffic traces and HAR metadata
+is presented in \Cref{sec:steps}.
 
 Furthermore, to speedup the capture of each video, we have installed an
 extension that is able to control HTML5 video speed playback.
@@ -169,19 +176,40 @@ We have implemented a class \texttt{netflix\_browser.py} capable of:
 \begin{enumerate}
     \item Log in the user to its Netflix account
     \item Navigate to a video url given a video ID
-    \item Seek the video to 240 seconds (4 minutes) (Avoiding entry credits)
-    \item Wait until the buffer of the video reaches 8 minutes (start at 240 seconds, ends at 480).
+    \item Start the proxy to record HAR metadata
+    \item Seek the video to 240 seconds (4 minutes) (avoiding entry credits)
+    \item Wait until the buffer of the video reaches 8 minutes (start at 240
+        seconds, ends at 480).
+    \item Stop the proxy and save the resulting HAR file
 \end{enumerate}
 
-
-
-
-
-\todo{Describe \texttt{netflix\_browser.py} and why we need HAR metadata.}
+\todo{draw a diagram with the steps required to obtain the fingerprints}
+\todo{insert listing specifying format of saved captures} 
 
 \section{Post-processing}
 
-\todo{Explain how ADU records are filtered and saved}
+The script that handles post-processing of \texttt{.pcap} output files is
+\texttt{post\_process.sh}. It is composed by three main functions.
+
+The first one invokes adudump on the traces recorded with tcpdump, after that,
+it extracts the DNSs contained in the HAR metadata and performs a DNS lookup
+using Unix's \texttt{host} command. This step is required to get the complete
+list of IP addresses of the OCAs that served the video, so that we can filter
+all non-video traffic that tcpdump has captured.
+
+The second function is responsible for generating the bitrate ladders of each
+title, and to save all fingerprints in a text file. Given a trace at a
+particular bandwidth level $b$, we compute the average bitrate as:
+
+\begin{equation*}
+    AVG_{bitrate} = 2 \cdot \dfrac{\Sigma_{i=0}^{n} \hspace{2pt} adu_i}{n}
+\end{equation*}
+
+We average over all ADUs (sizes are in bytes), divide by 4 seconds (approximate
+lenght of a video segment), and multiply by 8 to get a measure in
+\emph{bits/s}. 
+
+\todo{clarify thresholding}
 
 \section{Capturing video traffic}
 
