@@ -1,0 +1,11 @@
+plot_dir = "plots/"
+filename = substr(file, 0, strstrt(file, ".dat") - 1)
+set xlabel "Segments"
+set ylabel "Size of ADUs (bytes)"
+set yrange [0:]
+set format y "%.1s%c"
+set title sprintf("Fingerprint ID: %s", file[1:strstrt(file, "_") - 1]."-".file[strstrt(file, "_") + 1:strlen(file)])
+set term png
+print file
+set output sprintf("%s%s.png", plot_dir, filename)
+plot file with lp title substr(file, 0, strstrt(file, "_"))

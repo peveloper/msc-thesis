@@ -5,96 +5,109 @@ from collections import deque
 from collections import OrderedDict
 
 class Tracker:
-  def __init__(self, ipPair, timestamp):
-    self.addresses = ipPair
-    self.startTime = int(timestamp)
-    self.lastTime = timestamp
-    self.window = deque([],15)
-    self.identified = False
-    self.videoTitle = ""
-    self.firstID = -1
+
+    def __init__(self, ip_pair, capture_filename, window_size, key_mode, key_delta):
+
+        self.addresses = ip_pair
+        self.window = deque([], window_size)
+
+        self.id = -1
+        self.bitrate = -1
+        self.index = -1
+        self.capture_index = -1
+        self.key = None
+        self.capture_key = None
+        self.correlation = -1
+        self.elapsed = -1
+        self.matches = []
+        self.filename = None
     
-  def addADU(self, timestamp, size, clientSocket):
-    self.lastTime = timestamp
-    self.window.append(size)
+    def add_ADU(self, size, client_socket, idx):
+        self.window.append(size)
 
-    print(self.window)
+        if (len(self.window) == window_size):
+            output = str(self.window[0])
+            for x in range(1, window_size):
+                output += "," + str(self.window[x])
 
-    #if (len(self.window) == 15):
-    if (len(self.window) == 15) and (not self.identified):
-      output = str(self.window[0])
-      for x in range(1,15):
-        output += "," + str(self.window[x])
-      clientSocket.send(output + "\n")
+            client_socket.send(output + "\n")
+            result = client_socket.recv(1024)
 
-      # sys.stderr.write("DEBUG_LOOKUP\n")
+            if result != "none\n":
 
-      result = clientSocket.recv(1024)
-      if result != "none\n":
-        print('DIO')
-        sys.stderr.write(result)
-        if not self.identified:
-          tokens = result.split("\t")
-          self.identified = True
-          self.videoTitle = tokens[0]
-          self.firstID = int(self.lastTime - self.startTime)
+                tokens = result.split("\t")[:-1]
+                if(len(tokens) > 0):
+                    
+                    self.id = tokens[0]
+                    self.bitrate = float(tokens[1])
+                    self.index = int(tokens[2])
+                    self.capture_index = idx + 1 - window_size
+                    self.key = tokens[3].split()
+                    self.capture_key = tokens[4].split()
+                    self.correlation = float(tokens[5])
 
-    
-  def getLastTime(self):
-    return self.lastTime
+                    if (self.filename == None):
+                        # Set filename to store matches
+                        matches_dir = "../matches"
+                        self.filename = "%s/%s_%d_%d_%d_%d" % (matches_dir, capture_filename, window_size, len(self.key), key_mode, key_delta)
 
-  def printVideo(self):
-    if self.identified:
-      sys.stdout.write("ID:\t" + self.addresses + "\t" + str(self.startTime) + "\t" + str(int(self.lastTime)) + "\t" + str(self.firstID) + "\t" + self.videoTitle + "\n")
+                        # Write header
+                        with(open(self.filename, 'w')) as f:
+                            f.write("ID\tBITRATE\tSTART_IDX\tCAPTURE_START_IDX\tKEY\tCAPTURE_KEY\tCORRELATION\n")
+
+                    self.dump_match()
+                    return 1
+            return 0
+
+    def get_last_time(self):
+        return self.last_time
+
+    def dump_match(self):
+        record = ""
+        with(open(self.filename, 'a')) as f:
+            record += "%s" % self.id
+            record += "\t%.1f" % self.bitrate
+            record += "\t%d" % self.index
+            record += "\t%d" % self.capture_index
+            record += "\t%s" % ' '.join(self.key)
+            record += "\t%s" % ' '.join(self.capture_key)
+            record += "\t%.16f\n" % self.correlation
+            f.write(record)
+
 
 ### Main Program ###
 start_time = time.time()
 
-serverName = sys.argv[1]
-serverPort = int(sys.argv[2])
+server_name = sys.argv[1]
+server_port = int(sys.argv[2])
+capture_filename = sys.argv[3]
+window_size = int(sys.argv[4])
+key_mode = int(sys.argv[5])
+key_delta = int(sys.argv[6])
 
-clientSocket = socket(AF_INET, SOCK_STREAM)
-clientSocket.connect((serverName,serverPort))
+client_socket = socket(AF_INET, SOCK_STREAM)
+client_socket.connect((server_name,server_port))
 
-cnxTracker = OrderedDict()
+cnx_tracker = OrderedDict()
 
-for adu in sys.stdin:
-  adu = adu.rsplit('\n') # remove trailing newline
+for i, adu in enumerate(sys.stdin):
+    adu = adu.rsplit('\n') # remove trailing newline
+    fields = adu[0].split()
 
-  print(adu)
-  fields = adu[0].split()
+    try:
+        cnx_key = fields[1].split('>')[0].split('.')[0]
+        size = int(fields[2])
+    except ValueError:
+        continue
 
-  try:
-    currentTime = float(fields[0])
-    cnxKey = fields[1].split(':')[0][:2]
-    size = int(fields[2])
-  except ValueError:
-    continue
-
-  if cnxKey in cnxTracker:
-    cnx = cnxTracker[cnxKey]
-    del cnxTracker[cnxKey]
-  else:
-    cnx = Tracker(cnxKey, currentTime)
-
-  cnx.addADU(currentTime, size, clientSocket)    
-
-  cnxTracker[cnxKey] = cnx
-
-  deleteList = []
-  for k,v in cnxTracker.iteritems():
-    if ((currentTime - v.getLastTime()) > 120.0):
-      deleteList.append(k)
+    if cnx_key in cnx_tracker:
+        cnx = cnx_tracker[cnx_key]
+        del cnx_tracker[cnx_key]
     else:
-      break
-  for key in deleteList:
-    cnxTracker[key].printVideo()
-    del cnxTracker[key]
-  
-clientSocket.send("complete\n")
-clientSocket.close()
+        cnx = Tracker(cnx_key, capture_filename, window_size, key_mode, key_delta)
 
-for k,v in cnxTracker.iteritems():
-  v.printVideo()
+    cnx.add_ADU(size, client_socket, i)
+    cnx_tracker[cnx_key] = cnx
 
-print("--- %s seconds ---" % (time.time() - start_time))
+client_socket.send("complete\n")
+client_socket.close()

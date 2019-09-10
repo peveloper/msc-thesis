@@ -4,9 +4,13 @@ public class Movie {
 	private short bitrate;
 	private int[] segments;
 	private short numWindows;
+    private short windowSize;
 
 	// Constructor
-	public Movie(String titleBitrateAndFingerprint, int windowSize) {
+	public Movie(String titleBitrateAndFingerprint, short windowSize) {
+
+        this.windowSize = windowSize;
+
 		String[] titleBitrateAndFingerprintArray = titleBitrateAndFingerprint.split("\\t");
 
 		title = titleBitrateAndFingerprintArray[0];
@@ -37,4 +41,8 @@ public class Movie {
 	public short getNumWindows() {
 		return numWindows;
 	}
+
+    public short getWindowSize() {
+        return windowSize;
+    }
 }

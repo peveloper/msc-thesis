@@ -3,6 +3,8 @@ __pycache__/
 *.project
 *.log
 log/
+capture_log
 har/
+capture_har
 .nfs*
 
