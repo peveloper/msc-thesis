@@ -1,7 +1,6 @@
 \chapter{Approach}\label{sec:approach}
 
-After having shown the perspective of an ISP in the role of an attacker, we
-will now present our contribution and practical approach to build a database of
+We will now present our contribution and practical approach to build a database of
 fingerprints, capture and identify video traffic of an unaware user
 over a compromised network. 
 
@@ -14,10 +13,11 @@ present in our fingerprint's database at \emph{unseen} bandwidth levels.
 \section{Attack Scenario}
 
 Our own version of the attack, conversely to the one depicted in
-\Cref{fig:schema}, does not model the ISP as the adversary, nor does involve
-the ISP at all. We consider the case in which the attacker is a malicious user
-\emph{i}, with access to the same network an honest client is using to stream a
-Netflix title. Attacker \emph{i} has:
+\Cref{fig:schema}, does not include the ISP as a potential adversary, nor does
+involve an attacker that has compromised an ISP CDN.  We consider a specific
+case in which the attacker is a malicious user \emph{i}, with access to the
+same network an honest client is using to stream a Netflix title. Attacker
+\emph{i} has:
 
 \begin{itemize}
     \item either installed a passive TAP device on a LAN
