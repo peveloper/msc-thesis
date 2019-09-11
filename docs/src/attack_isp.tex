@@ -198,17 +198,16 @@ and perform a DNS lookup for each video every time, or to maintain an updated
 list of IP addresses with mappings to the recorded traffic. Then all he is left
 with, is a mixed trace of audio and video segments. Each Netflix audio segment
 represents about 16 seconds of playback, while every video segment corresponds
-to a 4 second playback \cite{netflix-real-time}.  Reed et Al's approach is to
-threshold ADU sizes to be at least 200 kilobytes.  The reason behind their
+to a 4 second playback \cite{netflix-real-time}. Reed et Al's approach is to
+threshold ADU sizes to be at least 200 kilobytes. The reason behind their
 choice is that they observed the size of audio segments to be $\approx 198$
 kilobytes. Throughput the testing of our system, we observed how this heuristic
 can no longer be applicable without a loss of information occurring in
 low-bandwidth settings. We noticed how with an enforced bandwidth level $b < 1$
 \emph{Mbps}, the sizes of transmitted video segments are less than 200
-kilobytes, so we have decided to consider two settings: one for which we do not
-threshold segment sizes (audio and video are considered as part of the
-fingerprints), and one for which we threshold ad 100 kilobytes. In
-\Cref{sec:results} we highlight the differences of these methods.
+kilobytes, although in general, the number of segments with less than 200
+kilobytes is low. Thus, We have decided to filter ADU segments with size less
+than 100 kilobytes, as described in \Cref{sec:approach}.
 
 \subsection{Building a database of fingerprints}
 

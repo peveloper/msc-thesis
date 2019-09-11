@@ -1,3 +1,13 @@
 \chapter{Evaluation and Analysis}\label{sec:results}
 
 
+Let $Y=\{y_1, y_2 \dots y_n\}$ be the set of HAR-based bitrates for movie $m$, at enforced bandwidth
+$b$, and let $\hat{Y}=\{\hat{y}_1, \hat{y}_2 \dots \hat{y}_n\}$ be the set of ADU-based computed bitrates for the same
+movie at the same enforced bandwidth, then:
+
+\begin{equation*}
+    RMSE_{m, b} = \sqrt{\dfrac{\Sigma_{i=0}^{n}(y_i - \hat{y}_i)^2}{n}}
+\end{equation*}
+
+where $n = |Y| = |\hat{Y}|$ 
+
