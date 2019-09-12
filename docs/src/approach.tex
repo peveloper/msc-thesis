@@ -227,7 +227,7 @@ with the HAR reconstructed ones as shown in \Cref{sec:rmse}.
 \end{figure}
 
 
-\section{Capturing video traffic}
+\section{Capturing video traffic}\label{sec:testing}
 
 In order to evaluate the attack, we capture a set of video traffic traces (the
 ones the attacker $i$ can retrieve by mirroring traffic on the compromised
@@ -267,21 +267,21 @@ fingerprints of captured traffic to query the database for matches.
 The Python script queries the Java process running the KD-tree, that returns a
 list of possible matches for the given captured trace.
 
-\begin{figure}[!h]
-  \centering
-  \includegraphics[width=.6\columnwidth]{img/identification.png}
-  \caption{Overview of the process of identification.}
-  \label{fig:identification}
-\end{figure}
+%\begin{figure}[!h]
+  %\centering
+  %\includegraphics[width=.6\columnwidth]{img/identification.png}
+  %\caption{Overview of the process of identification.}
+  %\label{fig:identification}
+%\end{figure}
 
 \subsection{KD-Tree}
 
-The code that implements the KD-Tree is found under the \texttt{server}
+The code that implements the KD-Tree is found under the \texttt{identify/server}
 directory. \texttt{runServer.sh} runs an instance of the system and requires 6
 parameters as input:
 
 \begin{bash_script}[caption={Start the Java Server}, label={lst:java}]
-        cd server && ./runServer.sh <db_file> <capture_file> <window_size> <key_size> <key_mode> <key_delta> <
+        cd server && ./runServer.sh <db_file> <capture_file> <window_size> <key_size> <key_mode> <key_delta> <pearson_threshold>
 \end{bash_script}
 
 To simplify writing, we assign to the following parameters a corresponding greek letter:
@@ -290,8 +290,8 @@ To simplify writing, we assign to the following parameters a corresponding greek
     \item $\omega$ represents the window size.
     \item $\kappa$ is the key size. 
     \item $\mu$ reprents the key mode.
-    \item $\delta$ 
-    \item $\rho$ represent the minimum pearson correlation coefficient to accept a match..
+    \item $\delta$ represents how broad the search it will be.
+    \item $\rho$ represent the minimum pearson correlation coefficient to accept a match.
 \end{itemize}
 
 The above script executes \texttt{Netflid.jar}, composed by the following
@@ -344,15 +344,25 @@ first dimension.
 
 \subsection{Querying the KD-Tree}
 
+The script acting in the role of the client, is located under \texttt{identify/client}'s directory
+
+\begin{bash_script}
+cd client && cat <capture_file> | grep ADU | awk '$6 > 100000' | cut -d " " -f2,3,4,5,6 | python preprocessor.py | python detector.py 127.0.0.1 1007 <capture_file> <window_size> <key_mode> <key_delta>
+\end{bash_script}
+
 After having added the key to the \texttt{KDTree}, we start a
 \texttt{ServerSocket} thread that listens for incoming connections from the
 client. \texttt{ServerThread} is the runnable class responsible for consuming
-the input of the socket the Python client communicates through. It reads up to
-$\omega$ lines, and creates a \texttt{Window} and its corresponding key with
-the same method used when adding records from the database to the
-\texttt{KDTree}. Then it queries the \texttt{KDTree} by generating an upper,
-and a lower range key, with the specified $\delta$ (the greater $\delta$ is,
-the broader the search will be). The \texttt{KDTree} then retrieves a list of
-matching windows with a \emph{pearson correlation} coefficient bigger than
-$\rho$.
+the input of the socket the Python client communicates through. 
 
+The Python Client consists of a script that takes as input a post-processed
+traffic capture, and sends sliding window of $\omega$ segments until it has
+consumed all lines.
+
+The \texttt{ServerThread} in Java reads up to $\omega$ lines, and creates a
+\texttt{Window} and its corresponding key with the same method used when adding
+records from the database to the \texttt{KDTree}. Then it queries the
+\texttt{KDTree} by generating an upper, and a lower range key, with the
+specified $\delta$ (the greater $\delta$ is, the broader the search will be).
+The \texttt{KDTree} then retrieves a list of matching windows with a
+\emph{pearson correlation} coefficient greater than $\rho$.
