@@ -21,9 +21,21 @@ passive traffic analysis.
 
 The goal of this project is to replicate part of the work conducted by Reed et
 Al. and to investigate the possibility of identifying a Netflix stream solely
-based on the observed average bandwidth. This, follows from the intuition that
-\emph{per-title encoding} embeds the nature and the complexity of video frames
-in a unique way, that may reveal the identity of the content being streamed.
+based on the observed average bandwidth. 
+
+Specifically, we have built a system capable of manipulating network bandwidth,
+observe video traffic, and reconstruct a \emph{bitrate ladder} for each video
+being watched. We then build a library of fingerpints at various network
+bandwidths, and analyze how often videos can be identified successfully, and
+how many bitrate ladders are unique.
+
+This, follows from the intuition that \emph{per-title encoding} embeds the
+nature and the complexity of video frames in a unique way, that may reveal the
+identity of the content being streamed.
+
+Furthermore we investigate and discuss possible countermeasures that streaming
+providers could adopt to preserve users privacy. A detailed explanation of our
+approach is presented in \Cref{sec:approach}
 
 \subsection{Per-Title Encoding}\label{sec:per-title-encoding}
 
@@ -211,46 +223,65 @@ method revelaed that they could identify majority of videos by recording only
 
 An earlier proof on how bandwidth analysis could reveal the content of
 ecnrypted traffic, was given by Saponas et Al. \cite{Saponas2007devices}, in
-their "SlingBox-Pro" case study, that exposed how, by recording network traffic
-and producing and combining different trace levels, they were able to identify
-98\% of 40 minutes video traces.
+their "SlingBox-Pro" case study, they investigate how a device that allowed
+users to remotely stream the contents of their TV over the Internet, could leak
+information on the video-content due to variabe bitrate encoding. They acquired
+traces of the same content at different network bandwidth levels, and combined
+into a database for future use. Then they presented a novel method that showed
+how with a Discrete Fourier Transform based matching algorithm they could query
+the aforementioned database. By analyzing 10 minutes of video they could
+identify a video with 62\% of probability, and with 40 minutes, more than 77\%.
+
+Other work that exploits VBR leakage has been done by Liu et Al.
+\cite{forensic}.  In their model they try to overcome some of the typical
+limitations of performing traffic analysis on video streams such as: a time
+consuming attack process, the fact that network conditions regarding each
+experiment are nearly identical (while in practice this depends on end-to-end
+network stability), and the fact that usually the size of video streams is
+limited to a pre-known set, and eventually that the performance of the
+underlying model on a larger database remains unknown. They have introduced a
+wavelet-based method to extract long and short range dependencies on the
+recorded video traffic traces, achieving an accuracy of 90\% with only 3
+minutes of video capture, and only a 1\% false alarm rate.
+
+Another machine learning based approach, \cite{qoe}, addresses the problem
+of estimating the QoE \emph{Quality of Experience} of video stream traffic.
+Adudump is used to get a reconstruction of the video segment sizes, and then
+some KPI \emph{Key Performance Indicator}, such as the initial video delay,
+stalls due to low download rates, and average representation quality (average
+throughput), are computed. Subsequently each video gets assigned a quality
+level, and the collected features are trained with several classification
+models (Naive Bayes, Random forests, SMOs). They are able to assess with 80\%
+of accuracy the quality level of a video traffic trace recorded at an unseen
+network bandwidth. 
 
 Similar work has been conducted also by Moser \cite{moser}, who analyzed how
 bitrate ladders could uniquely embed the identity of Netflix titles. In his
 work he further studies the impact of the aggregation of each video's segment
 bandwidth on the overall accuracy of his system. 
 
-\section{Main Objective}\label{sec:objective}
-
-The main goal of this project is to build a system that can manipulate network
-bandwidth and observe video traffic from Netflix, to verify the intuition that
-each title could be identified by its own bitrate ladder. 
-
-Furthermore we investigate and discuss possible countermeasures that streaming
-providers could adopt to preserve users privacy. A detailed explanation of our
-approach is presented in \Cref{sec:approach}
-
 \section{Structure of this Report}\label{sec:structure}
   
 In this section, we outline the contents and the structure of this report.
 
-Chapter 1 introduced our motivation behind the project, presented featured work
+\Cref{sec:introduction} introduced our motivation behind the project, presented featured work
 that influenced and inspire our approach, and listed the goals we would like to
 ultimately achieve.
 
-Chapter 2 presents the attack scenario from an ISP perspective, (the ISP acting
-as the adversary), the infrastructure needed to acquire the data, the nature of
-the information that could be infered, and the consequences that might arise.
+\Cref{sec:attack_isp} presents the attack scenario from the perspective of a
+malicious user that has compromised a node on the path between the client and
+the server, the infrastructure needed to acquire the data, the nature of the
+information that could be infered, and the consequences that might arise.
 
-Chapter 3 shows our version of the attack, in a different context, but up to
+\Cref{sec:approach} shows our version of the attack, in a different context, but up to
 some extent, with similar conditions to the one depicted in Chapter 2. It also
 higlights the similiarities and differences from the featured approaches we
 followed.
 
-In Chapter 4 we evaluate our system, we present results, and discuss the
+\Cref{sec:results} we evaluate our system, we present results, and discuss the
 relevance of such a method.
 
-Chapter 5 tries to summarize and draw conclusions based on the claims made at
+\Cref{sec:conclusion} tries to summarize and draw conclusions based on the claims made at
 the beginning of this report.
 %TODO Chapter 2 - End to End Attack Scenario 
                %- Describe the attack scenario from the perspective of an ISP

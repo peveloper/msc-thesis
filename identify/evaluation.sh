@@ -117,9 +117,9 @@ default() {
                 ((i++))
 
                 # generate plot_data
-                x=$(seq 1 $win_size)
-                y_1=$(cat $db_path | grep $file_name | cut -d '	' -f3 | cut -d ',' -f$idxs | tr ',' '\n')
-                y_2=$(cat $input_file | awk -v idx="${capture_index}" -v end="${capture_end}" '{if(nr >= idx && nr <= end) {print $6}}')
+                #x=$(seq 1 $win_size)
+                #y_1=$(cat $db_path | grep $file_name | cut -d '	' -f3 | cut -d ',' -f$idxs | tr ',' '\n')
+                #y_2=$(cat $input_file | awk -v idx="${capture_index}" -v end="${capture_end}" '{if(nr >= idx && nr <= end) {print $6}}')
 
                 #TODO FIX yerr here
 
@@ -176,8 +176,13 @@ export -f default
 
 main() {
 
+    echo "here"
+
     db_path=$1
     input_file=$2
+
+    echo $db_path
+    echo $input_file
 
     if [[ $# == 7 ]]; then
 
@@ -206,12 +211,16 @@ main() {
         threshold=$6
         capture_filename="$(basename -- $input_file)"
 
+        echo $max_win
+
         if [ -z "$max_win" ];
         then
             nr=$(cat $input_file | wc -l)
         else
             nr=$max_win
         fi
+
+        echo $nr
 
 
         capture_id=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
@@ -224,8 +233,11 @@ main() {
             key_sizes=$(get_factors $win_size | sort | uniq)
             echo $key_sizes
             number_of_factors=$(wc -w <<< "$key_sizes")
+            factors=$(echo $key_sizes | tr -dc '0-9')
+            echo $factors
 
-            if (( number_of_factors > 1 )); then
+            if [[ $factors != "1${win_size}" ]]; then
+                echo $win_size $factors
                 for key_size in $key_sizes; do
                     ((++key_size))
                     echo "WIN_SIZE ${win_size} KEY_SIZE ${key_size}"
@@ -236,6 +248,7 @@ main() {
                     fi
                 done
             else
+                echo "primo cazzo"
                 # prime number of segments in window
                 key_size=$((win_size + 1))
                 echo "WIN_SIZE ${win_size} KEY_SIZE ${key_size}"
@@ -245,18 +258,25 @@ main() {
                     default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
                 fi
             fi
+
         done
 
+        echo $plot_file
         plot_accuracy $plot_file $capture_filename $key_mode $key_delta $threshold
+
     fi
 }
 export -f main
 
-evaluate_dataset() {
-    main "$@" 
-}
-export -f evaluate_dataset
+#evaluate_dataset() {
+    #main "$@" 
+#}
+#export -f evaluate_dataset
 
-evaluate_dataset "$@"
-#capture_dir="../acquire_fingerprints/capture_log/"
-#ls $capture_dir | parallel --dry-run evaluate_dataset $1 {} $2 $3 $4 $5
+#main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu/81080637_1000 1 25 4 0.99
+ 
+#main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/identify/80134721_1000 1 25 4 0.99
+#capture_path="../acquire_fingerprints/testing_data/adu"
+#capture_dir=$(cd ${capture_path} && ls -ld $PWD/* | awk '$9 ~ /[0-9]/ {print $9}')
+#echo "${capture_dir}"
+#parallel --dry-run main ::: $1 ::: $capture_dir ::: $2 ::: $3 ::: $4 ::: $5
