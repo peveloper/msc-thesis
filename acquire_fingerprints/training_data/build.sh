@@ -121,3 +121,5 @@ export -f compare_bitrates
 #gen_plots "har"
 
 compare_bitrates
+cd stats && cat *
+#cd stats && tail * -n1 --quiet | awk '{sum+=$2; print $2} END {print sum / NR}' > avg_rmse
