@@ -12,7 +12,7 @@ Let $n$ be the number of returned windows for a given capture trace, and let $TP
 It follows that $n = TP + FP$
 
 \begin{equation*}
-    acc = \dfrac{TP}{n} = 1 - \dfrac{FP}{n}
+    \mathbf{acc} = \dfrac{TP}{n} = 1 - \dfrac{FP}{n}
 \end{equation*}
 
 As mentioned in \Cref{sec:testing}, our testing dataset consists of the same 100 movies present in the database at 8 unseen enforced bandwidths. We pass each capture to the identification process, that runs the evaluation by varying the window size $\omega$, and the corresponding key size $\kappa$. For every run, we then compute the number of matches/mismatches, and report the statistics shown in \Cref{lst:stats}. In addition, we plot for each configuration the number of matches, the number of collisions and the number of mismatches. The number of collisions, represents the number of matches from different bandwidth levels, (e.g. suppose to have a capture at 6.0 \emph{Mbps}, now assume the KDTree returns as matching windows, a list of matches all of the same movie, but at different bandwidths, 5.0 \emph{Mbps}, and 7 \emph{Mbps}, then the number of collisions is 2).
@@ -33,7 +33,7 @@ $b$, and let $\hat{Y}=\{\hat{y}_1, \hat{y}_2 \dots \hat{y}_n\}$ be the set of AD
 movie at the same enforced bandwidth, then:
 
 \begin{equation*}
-    RMSE_{m, b} = \sqrt{\dfrac{\Sigma_{i=0}^{n}(y_i - \hat{y}_i)^2}{n}}
+    \mathbf{RMSE_{m, b}} = \sqrt{\dfrac{\Sigma_{i=0}^{n}(y_i - \hat{y}_i)^2}{n}}
 \end{equation*}
 
 where $n = |Y| = |\hat{Y}|$
@@ -41,7 +41,7 @@ where $n = |Y| = |\hat{Y}|$
 Then, the \emph{mean-normalized} RMSE is given by:
 
 \begin{equation*}
-    NRMSE_{m, b} = \dfrac{RMSE_{m, b}}{\overline{\hat{y}}}
+    \mathbf{NRMSE_{m, b}} = \dfrac{RMSE_{m, b}}{\overline{\hat{y}}}
 \end{equation*}
 
 In addition, in order to assess the uniqueness of both the real and the
@@ -50,11 +50,12 @@ bitrate, the bitrate standard deviation, and the median.
 
 \begin{small}
 \begin{longtable}{|c|c c c|c c c|c|}
-    \caption{Collected statistics for the bitrate ladders (values in \emph{Mbps})}\label{tab:bitrate_ladders_stats}\\
+    \caption{Collected statistics for the bitrate ladders (values in
+    \emph{Mbps})}\label{tab:bitrate_ladders_stats}\\
 \hline
 \textbf{Title ID} &
-\multicolumn{3}{|c}{\textbf{Real}} &
-\multicolumn{3}{|c|}{\textbf{Reconstruced}} &
+\multicolumn{3}{c|}{\textbf{Real}} &
+\multicolumn{3}{c|}{\textbf{Reconstruced}} &
 \multirow{2}{*}{\textbf{RMSE}} \\
 & $\mu$ & $\sigma$ & $\tilde{y}$ & $\mu$ & $\sigma$ & $\tilde{y}$ & \\
 \hline
@@ -165,19 +166,66 @@ bitrate, the bitrate standard deviation, and the median.
 \multicolumn{7}{|l}{\textbf{AVERAGE}} & 0.12 \\
 \end{longtable}
 \end{small}
+\newpage
 
 \begin{figure}[!h]
   \centering
   \includegraphics[width=\columnwidth]{img/70019012.png}
-  \caption{Comparison between the HAR-based bitrate ladder (REAL) and the ADU-based reconstructed bitrate ladder for "Casino" ID: 70019012. Accuracy of reconstruction is shown as the RMSE}
+  \caption{Comparison between the HAR-based bitrate ladder (REAL) and the
+  ADU-based reconstructed bitrate ladder for "Casino" ID: 70019012. Accuracy of
+  reconstruction is shown as the RMSE.}
   \label{fig:bl_comparison_good}
 \end{figure}
 
-In the plot above we show an example of what we evaluate as a low-error reconstruction, with an RMSE of 0.07. By looking at the average RMSE across all movies, we notice 
+The plot above represents the "real" and reconstructed bitrate ladders.  The
+accuracy of our prediction is represented by the RMSE, which is 0.07.  This
+title's bitrate ladder gets reconstructed faithfully, and almost every title in
+our database follow this trend. This is confirmed by further looking at the
+average RMSE shown at the end of \Cref{tab:bitrate_ladders_stats}. Eventually,
+63 titles have an RMSE less than 0.12, and 87 less than 0.16.
+\Cref{fig:bl_comparison_good_1} and \Cref{fig:bl_comparison_good_2} are two
+examples of reconstruction which RMSE is 0.12 and 0.16 respectively.
+
+\newpage
+
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=\columnwidth]{img/80198592}
+  \caption{Comparison between the HAR-based bitrate ladder (REAL) and the
+  ADU-based reconstructed bitrate ladder for "Armed Response" ID: 80198592.
+  Accuracy of reconstruction is shown as the RMSE.}
+  \label{fig:bl_comparison_good_1}
+\end{figure}
+
+By looking at the above plot we spot two major areas where the differences
+between the real and the reconstructed bitrates have greater impact on the
+overall accuracy. Bottom left, when the enforced bandwidth and the bitrates are
+low, and top right, at 15\emph{Mbps}. We focus our attention on the bottom-left
+area, and notice how it correlates with the RMSE of the following plots.
+
+\newpage
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=\columnwidth]{img/70308278}
+  \caption{Comparison between the HAR-based bitrate ladder (REAL) and the
+  ADU-based reconstructed bitrate ladder for "Mission Blue" ID: 80198592.}
+  \label{fig:bl_comparison_good_2}
+\end{figure}
+
+In this case we observe that with a greater RMSE, the two curves start to be
+parallel to each other. By looking at the plot in \Cref{fig:bl_comparison_bad}
+we see a magnified version of this behavior, and explain its existence.
 
 \begin{figure}[!h]
   \centering
   \includegraphics[width=\columnwidth]{img/81056132.png}
-  \caption{Comparison between the HAR-based bitrate ladder (REAL) and the ADU-based reconstructed bitrate ladder for "Dirty John" ID: 81056132. Accuracy of reconstruction is shown as the RMSE}
+  \caption{Comparison between the HAR-based bitrate ladder (REAL) and the
+  ADU-based reconstructed bitrate ladder for "Dirty John" ID: 81056132.}
   \label{fig:bl_comparison_bad}
 \end{figure}
+
+This plot represent a particular case of a
+
+\todo{Finish this by explaining uniqueness of the bitrate ladders, arguing that
+in a bigger DB we should try to cluster and complete the Video Identification
+analysis, possibly making comparisons}
