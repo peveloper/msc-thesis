@@ -1,0 +1,10 @@
+files = ARG1
+set terminal pngcairo size 1200, 800 dashed enhanced font "Helvetica,18"
+set decimal locale
+set grid
+set pointsize 50
+set output "scatter.png"
+set ylabel "AVG Bitrate (bits/s) of all recorded traces"
+set xlabel "Enforced Throughputs (bits/s)" offset -0.1,0,0
+unset key
+plot for [file in files] file using 1:2  with dots lt rgb "red"
