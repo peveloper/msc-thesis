@@ -4,8 +4,8 @@ plot_dir = "plots/"
 filename=ARG1
 title=ARG2
 id=(ARG2[1:strstrt(ARG2, "_")-1])+0
-tp=(ARG2[strstrt(ARG2, "_")+1:]+0) / 1000
-set title sprintf("Frequency of matches, collisions and mismatches for ID %d at %.2fMbps at different window sizes, MODE[%s], Key Δ = %s", id, tp, ARG3, ARG4)
+tp=(ARG2[strstrt(ARG2, "_")+1:]+0)
+set title sprintf("Frequency of matches, collisions and mismatches for ID %d at %.2fMbps at different window sizes, MODE[%s], Key Δ = %s", id,tp / 1000, ARG3, ARG4)
 set output sprintf("%s%s.png", plot_dir, filename)
 set style histogram cluster gap 2
 set style data histograms
@@ -19,3 +19,16 @@ set grid
 set yrange [0:*]
 set ytics nomirror
 plot filename using 2 ti col lt rgb "green", '' u 3 ti col lt rgb "blue", '' u 4:xticlabels(1) ti col lt rgb "red"
+stats_filename = "stats/".filename
+set print stats_filename
+print "Matches"
+stats filename using (column(2)) name "matches"
+print "--------------------------------------------------------------------------------"
+print "Collisions"
+stats filename using (column(3)) name "collisions"
+print "--------------------------------------------------------------------------------"
+print "Mismatches"
+stats filename using (column(4)) name "mismatches"
+
+
+

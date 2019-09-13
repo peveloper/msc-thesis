@@ -55,9 +55,9 @@ public class Netflid {
             ServerSocket serverSocket = null; 
 
             try { 
-                serverSocket = new ServerSocket(10007); 
+                serverSocket = new ServerSocket(10007);
             } catch (IOException e) { 
-                System.err.println("Could not listen on port: 10007."); 
+                System.err.println("Could not listen on port: " + 10007);
                 System.exit(1); 
             } 
 

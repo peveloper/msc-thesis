@@ -210,8 +210,8 @@ main() {
         max_win=$5
         threshold=$6
         capture_filename="$(basename -- $input_file)"
+        plot_file=""
 
-        echo $max_win
 
         if [ -z "$max_win" ];
         then
@@ -219,8 +219,6 @@ main() {
         else
             nr=$max_win
         fi
-
-        echo $nr
 
 
         capture_id=$(echo $capture_filename | awk -F\| '{sub(/_/,"|");$1=$1;printf "%d\n", $1}')
@@ -230,53 +228,54 @@ main() {
 
         for((win_size=2; win_size < nr; win_size++))
         do
-            key_sizes=$(get_factors $win_size | sort | uniq)
-            echo $key_sizes
-            number_of_factors=$(wc -w <<< "$key_sizes")
-            factors=$(echo $key_sizes | tr -dc '0-9')
-            echo $factors
+            if (( $win_size == 2 || $win_size == 3 || $win_size == 5 || $win_size == 10  || $win_size == 15 || $win_size == 20 ));then
+                key_sizes=$(get_factors $win_size | sort | uniq)
+                number_of_factors=$(wc -w <<< "$key_sizes")
+                factors=$(echo $key_sizes | tr -dc '0-9')
 
-            if [[ $factors != "1${win_size}" ]]; then
-                echo $win_size $factors
-                for key_size in $key_sizes; do
-                    ((++key_size))
+                if [[ $factors != "1${win_size}" ]]; then
+                    echo $win_size $factors
+                    for key_size in $key_sizes; do
+                        ((++key_size))
+                        echo "WIN_SIZE ${win_size} KEY_SIZE ${key_size}"
+                        if [[ -z ${plot_file} ]];then
+                            plot_file=$(default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold)
+                        else
+                            default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
+                        fi
+                    done
+                else
+                    # prime number of segments in window
+                    key_size=$((win_size + 1))
                     echo "WIN_SIZE ${win_size} KEY_SIZE ${key_size}"
                     if [[ -z ${plot_file} ]];then
                         plot_file=$(default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold)
                     else
                         default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
                     fi
-                done
-            else
-                echo "primo cazzo"
-                # prime number of segments in window
-                key_size=$((win_size + 1))
-                echo "WIN_SIZE ${win_size} KEY_SIZE ${key_size}"
-                if [[ -z ${plot_file} ]];then
-                    plot_file=$(default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold)
-                else
-                    default $db_path $input_file $win_size $key_size $key_mode $key_delta $threshold
                 fi
             fi
-
         done
 
-        echo $plot_file
         plot_accuracy $plot_file $capture_filename $key_mode $key_delta $threshold
+        echo $plot_file
 
     fi
 }
 export -f main
 
-#evaluate_dataset() {
-    #main "$@" 
-#}
-#export -f evaluate_dataset
+evaluate_dataset() {
+    main "$@" 
+}
+export -f evaluate_dataset
 
-#main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu/81080637_1000 1 25 4 0.99
+#main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu/896970_6000 1 25 4 0.99
  
 #main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/identify/80134721_1000 1 25 4 0.99
-#capture_path="../acquire_fingerprints/testing_data/adu"
+capture_path="/home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu"
 #capture_dir=$(cd ${capture_path} && ls -ld $PWD/* | awk '$9 ~ /[0-9]/ {print $9}')
 #echo "${capture_dir}"
-#parallel --dry-run main ::: $1 ::: $capture_dir ::: $2 ::: $3 ::: $4 ::: $5
+#parallel --progress main ::: $1 ::: $capture_dir ::: $2 ::: $3 ::: $4 ::: $5
+for file in $capture_path/*; do
+    evaluate_dataset $1 $file $2 $3 $4 $5 $6
+done
