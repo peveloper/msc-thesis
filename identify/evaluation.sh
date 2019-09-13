@@ -38,7 +38,7 @@ export -f generate_accuracy_plot
 
 plot_accuracy() {
     gnuplot -c accuracy "$@"
-    rm -rf $1
+    #rm -rf $1
 }
 export -f plot_accuracy
 
@@ -269,13 +269,15 @@ evaluate_dataset() {
 }
 export -f evaluate_dataset
 
-#main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu/896970_6000 1 25 4 0.99
+main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu/81056132_18000 1 25 25 0.99
  
 #main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/identify/80134721_1000 1 25 4 0.99
-capture_path="/home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu"
+#capture_path="/home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu"
 #capture_dir=$(cd ${capture_path} && ls -ld $PWD/* | awk '$9 ~ /[0-9]/ {print $9}')
 #echo "${capture_dir}"
 #parallel --progress main ::: $1 ::: $capture_dir ::: $2 ::: $3 ::: $4 ::: $5
-for file in $capture_path/*; do
-    evaluate_dataset $1 $file $2 $3 $4 $5 $6
-done
+#for file in $capture_path/*; do
+    #evaluate_dataset $1 $file $2 $3 $4 $5 $6
+#done
+#files=$(ls | grep -e '^acc_[0-9]*')
+#cat $files | grep ^[0-9] | sort -n | awk ' NR>0{ matches[$1] += $2;  mismatches[$1]+= $4 } END{ for (k in matches) { print k "\t" matches[k] "\t" mismatches[k] } } ' | sort -n | awk '{matches+=$2; mismatches+=$3;} END {print matches / (matches + mismatches)}'
