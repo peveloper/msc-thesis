@@ -269,7 +269,7 @@ evaluate_dataset() {
 }
 export -f evaluate_dataset
 
-main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu/81056132_18000 1 25 25 0.99
+main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu/81056132_500 1 25 25 0.99
  
 #main /home/ubuntu/db.dat /home/ubuntu/msc-thesis/identify/80134721_1000 1 25 4 0.99
 #capture_path="/home/ubuntu/msc-thesis/acquire_fingerprints/testing_data/adu"

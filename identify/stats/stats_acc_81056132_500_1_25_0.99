@@ -1,5 +1,5 @@
 Matches
-records	6
+records	1
 invalid	1
 blanks	0
 blocks	1
@@ -7,26 +7,26 @@ columnheaders	0
 outofrange	0
 mean_y	1.000000
 stddev_y	0.000000
-ssd_y	0.000000
+ssd_y	-nan
 skewness_y	nan
 kurtosis_y	nan
 adev_y	0.000000
-sum_y	6.000000
-sum_sq_y	6.000000
+sum_y	1.000000
+sum_sq_y	1.000000
 mean_err_y	0.000000
 stddev_err_y	0.000000
-skewness_err_y	1.000000
-kurtosis_err_y	2.000000
+skewness_err_y	2.449490
+kurtosis_err_y	4.898979
 min_y	1.000000
 lo_quartile_y	1.000000
 median_y	1.000000
 up_quartile_y	1.000000
 max_y	1.000000
 min_index_y	0
-max_index_y	5
+max_index_y	0
 --------------------------------------------------------------------------------
 Collisions
-records	6
+records	1
 invalid	1
 blanks	0
 blocks	1
@@ -34,7 +34,7 @@ columnheaders	0
 outofrange	0
 mean_y	0.000000
 stddev_y	0.000000
-ssd_y	0.000000
+ssd_y	-nan
 skewness_y	nan
 kurtosis_y	nan
 adev_y	0.000000
@@ -42,18 +42,18 @@ sum_y	0.000000
 sum_sq_y	0.000000
 mean_err_y	0.000000
 stddev_err_y	0.000000
-skewness_err_y	1.000000
-kurtosis_err_y	2.000000
+skewness_err_y	2.449490
+kurtosis_err_y	4.898979
 min_y	0.000000
 lo_quartile_y	0.000000
 median_y	0.000000
 up_quartile_y	0.000000
 max_y	0.000000
 min_index_y	0
-max_index_y	5
+max_index_y	0
 --------------------------------------------------------------------------------
 Mismatches
-records	6
+records	1
 invalid	1
 blanks	0
 blocks	1
@@ -61,20 +61,20 @@ columnheaders	0
 outofrange	0
 mean_y	5.000000
 stddev_y	0.000000
-ssd_y	0.000000
+ssd_y	-nan
 skewness_y	nan
 kurtosis_y	nan
 adev_y	0.000000
-sum_y	30.000000
-sum_sq_y	150.000000
+sum_y	5.000000
+sum_sq_y	25.000000
 mean_err_y	0.000000
 stddev_err_y	0.000000
-skewness_err_y	1.000000
-kurtosis_err_y	2.000000
+skewness_err_y	2.449490
+kurtosis_err_y	4.898979
 min_y	5.000000
 lo_quartile_y	5.000000
 median_y	5.000000
 up_quartile_y	5.000000
 max_y	5.000000
 min_index_y	0
-max_index_y	5
+max_index_y	0
