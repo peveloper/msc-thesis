@@ -5,6 +5,7 @@ clean:
 	rm -rf y_2
 	rm -rf plots/
 	rm -rf matches
+	rm -rf stats/
 	mkdir plots
 	mkdir matches
-
+	mkdir stats

@@ -12,7 +12,8 @@ THRESHOLD=$7
 
 FILE_NAME="$(basename -- $INPUT_FILE)"
 
-cd server && ./runServer.bash $DB_PATH $WIN_SIZE $KEY_SIZE $KEY_MODE $KEY_DELTA $THRESHOLD> /dev/null 2>&1 & 
+
+cd server && ./runServer.bash $DB_PATH $WIN_SIZE $KEY_SIZE $KEY_MODE $KEY_DELTA $THRESHOLD > /dev/null 2>&1 & 
 
 #echo 'Database setting up...'
 sleep 5
