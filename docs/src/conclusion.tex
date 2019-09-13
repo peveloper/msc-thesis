@@ -1,1 +1,48 @@
 \chapter{Conclusions}\label{sec:conclusion}
+
+We now analyze and discuss our system's strengths and weaknesses, arguing on
+the conditions required to successfully perform the attack, and eventually,
+present our perspective on possible future research.
+
+\section{Contribution}
+
+In \Cref{sec:results} we have given both quantitative and visual evidence of the
+results achieved with our methodology. We now extend the analysis by abstracting
+the context to a more realistic scenario. 
+
+Throughout the description of our approach, we have ignore potential factors
+that may be source of various types of errors when carrying out the attack in a
+real scenario (\emph{e.g.} a public WLAN network). 
+
+We have presented a revisited version of \cite{netflix-real-time} that, by
+watching 4 minutes of video playback for a limited number of Netflix titles
+(100), in stable network conditions, can faithfully reconstruct bitrate ladders
+of movies encoded with an average bitrate greater than 1Mbps across 13
+different enforced bandwidth levels. The 100 reconstructed bitrate ladders are
+uniquely identifiable by their average bitrate, standard deviation, or median.
+
+Our system identifies with approximately 86\% of accuracy the same set of
+video titles across 8 \emph{unseen} bandwidth levels not previously captured in the
+database. We have tested this behavior for several window sizes and conclude
+that for majority of the titles, the average bitrate of, up to 20 subsequent
+ADUs, represents a robust feature to reveal the content being streamed.
+
+\subsection{Metrics}
+
+\section{Benefits}
+
+\todo{finish}
+
+\section{Shortcomings and Feasibility}
+
+\todo{finish}
+
+The presence of various users in the network, for instance, may potentially
+impact the quality of our resconstruction, especially if the content being
+streamed is encoded at a low bitrate, or if the network bandwidth is unstable
+(could cause the Netflix buffering algorithm to jump over different bitrate
+levels during a 4 minute capture. 
+
+\section{Future Work}
+
+\todo{finish}

@@ -42,8 +42,11 @@ l = [i for i in range(100)]
 fig, ax = plt.subplots()
 figure(num=1, figsize=(48, 48))
 
-
-ax.scatter(l, df['B'], c= kmeans.labels_.astype(float), s=25, alpha=0.5)
+ax.scatter(l, df['B'], c= kmeans.labels_.astype(float), s=10, alpha=1)
+# ax.scatter(centroids[:, 0], centroids[:, 1], c='red', s=10)
+plt.xlabel('Movie index')
+plt.ylabel('AVG Bitrate (Mbps)')
+plt.title('K-means labeling of movies by average bitrate of reconstructed Bitrate Ladders')
 for i, k in enumerate(titles.keys()):
     ax.annotate(titles[k], (l[i], df['B'][i]))
 plt.show(figure(num=1))
