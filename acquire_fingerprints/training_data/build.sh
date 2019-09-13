@@ -120,6 +120,10 @@ export -f compare_bitrates
 #gen_plots "adu"
 #gen_plots "har"
 
-compare_bitrates
-cd stats && cat *
+#compare_bitrates
+#cd stats && cat * | awk '{if($15 < 0.17) print $15}' | wc -l 
+bl_files=$(ls | grep -e '^[0-9]*_20000.adu.bl')
+gnuplot -c scatter_ladder "${bl_files}"
+cd stats && cat * | cut -d '&' -f1,2,3,4,7 | python ../k_means.py
+#cat -n $bl_files | python k_means.py
 #cd stats && tail * -n1 --quiet | awk '{sum+=$2; print $2} END {print sum / NR}' > avg_rmse
