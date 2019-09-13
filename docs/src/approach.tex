@@ -253,7 +253,6 @@ As for the acquisition of fingerprints, we repeat the same exact steps to build
 our testing set, that is composed by the same 100 titles recorded at the new 8
 unseen bandwidth levels depicted above. 
 
-\newpage
 \section{Identification}
 
 For this purpose, we have implemented a modified version of the search tree
@@ -274,7 +273,7 @@ list of possible matches for the given captured trace.
   %\label{fig:identification}
 %\end{figure}
 
-\subsection{KD-Tree}
+\subsection{KD-Tree}\label{sec:KD}
 
 The code that implements the KD-Tree is found under the \texttt{identify/server}
 directory. \texttt{runServer.sh} runs an instance of the system and requires 6
@@ -344,20 +343,21 @@ first dimension.
 
 \subsection{Querying the KD-Tree}
 
-The script acting in the role of the client, is located under \texttt{identify/client}'s directory
-
+The script acting in the role of the client, is located under
+\texttt{identify/client}'s directory
+\begin{small}
 \begin{bash_script}
 cd client && cat <capture_file> | grep ADU | awk '$6 > 100000' | cut -d " " -f2,3,4,5,6 | python preprocessor.py | python detector.py 127.0.0.1 1007 <capture_file> <window_size> <key_mode> <key_delta>
 \end{bash_script}
+\end{small}
 
 After having added the key to the \texttt{KDTree}, we start a
 \texttt{ServerSocket} thread that listens for incoming connections from the
 client. \texttt{ServerThread} is the runnable class responsible for consuming
-the input of the socket the Python client communicates through. 
-
-The Python Client consists of a script that takes as input a post-processed
-traffic capture, and sends sliding window of $\omega$ segments until it has
-consumed all lines.
+the input of the socket the Python client communicates through.  The Python
+Client consists of a script that takes as input a post-processed traffic
+capture, and sends sliding window of $\omega$ segments until it has consumed
+all lines.
 
 The \texttt{ServerThread} in Java reads up to $\omega$ lines, and creates a
 \texttt{Window} and its corresponding key with the same method used when adding

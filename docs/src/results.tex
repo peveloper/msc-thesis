@@ -3,6 +3,17 @@
 The scripts that perform the evaluation of our testing set, are
 \texttt{evaluation.sh} and \texttt{exec\_query.sh}.
 
+The values of parameters of the \texttt{KDTree} described in \Cref{sec:KD} used are:
+
+\begin{itemize}
+    \item $\omega = \{2,3,5,10,20\}$
+    \item $\kappa$ gets computed based on $\omega$ factors (s.t. $\kappa - 1$
+        has to be a factor of $\omega$).
+    \item $\mu$ = 1 (Average Bitrate Mode)
+    \item $\delta = \pm 25 bps$
+    \item $\rho$ = 0.99
+\end{itemize}
+
 \section{Video Identification} After receiving a list of matching windows from
 the KD-Tree, we classify each one of them as a proper \textbf{match} iff the
 window's ID matches the ID of the capture we passed to the Java identification
@@ -38,11 +49,73 @@ then the number of collisions is 2).
 
 \begin{figure}[!h]
   \centering
-  \includegraphics[width=\columnwidth]{img/81056132_matches.png}
+  \includegraphics[width=\columnwidth]{img/acc_81056132_500.png}
   \caption{Frequency of matches, collisions, and mismatches  at various window
-  sizes for "Dirty John" ID: 81056132.}
-  \label{fig:fingerprints}
+  sizes for "Dirty John" ID: 81056132, recorded at 500 Kbps}
+  \label{fig:matches_1}
 \end{figure}
+\begin{figure}[!h]
+  \centering
+  \includegraphics[width=\columnwidth]{img/acc_81056132_18000.png}
+  \caption{Frequency of matches, collisions, and mismatches  at various window
+  sizes for "Dirty John" ID: 81056132, recorded at 18 Mbps}
+  \label{fig:matches_2}
+\end{figure}
+
+The plot in \Cref{fig:matches_1} represent a low-bandwidth capture where the
+number of mismatches dominates the number of matches. The fact that with a
+small window the KD-Tree returns a greater numnber of mismatches then when
+considering larger windows is trivial, since the search key is based on the
+average bitrate. Despite this, the KD-Tree, does not return matches nor
+mismatches for $\omega = \{3, 5, 10, 20\}$.  We observe this behavior only in
+low-bandwidths scenarios, and it is due to an incorrect segment size inference
+by adudump. The main reason for why adudump cannot correctly inference the
+video segment sizes is spottable by  by looking at the trace in
+\Cref{lst:adutrace}, particularly at the destination IP address (which is the
+local address of the interface we are recording traffic on). One can notice how
+ADUs have different \texttt{PORT} numbers, one for every virtual connection
+established by the the custom TCP-connection algorithm running on OCAs. On
+contrary, in \cite{netflix-real-time}, the reported adudump traces did not
+manifest this behavior.
+
+In \Cref{fig:matches_2}, at a much higher bandwidth shows how the number of
+matches varies as increasing $\omega$. We note how for $\omega=20$ the KD-Tree
+does not return any match nor mismatch. In \Cref{tab:matches} we report the
+overall number of matches/mismatches for different $\omega$s.
+
+\begin{small}
+\begin{longtable}{|c c c|}
+    \caption{Frequency of matches for different values of $\omega$}\label{tab:matches}\\
+\hline
+$\omega(\kappa)$ &
+\textbf{Matches} &
+\textbf{Mismatches} \\
+\hline
+\endhead
+\hline
+\endfoot
+2(3)	& 17648	& 6794 \\
+3(4)	& 12957	& 410 \\
+5(6)	& 6414	& 2 \\
+10(11)	& 1541	& 0 \\
+10(2)	& 1481	& 0 \\
+10(3)	& 1516	& 0 \\
+10(6)	& 1528	& 0 \\
+15(16)	& 461	& 0 \\
+15(2)	& 461	& 0 \\
+15(4)	& 459	& 0 \\
+15(6)	& 456	& 0 \\
+20(11)	& 138	& 0 \\
+20(21)	& 138	& 0 \\
+20(2)	& 145	& 0 \\
+20(3)	& 137	& 0 \\
+20(5)	& 139	& 0 \\
+20(6)	& 142	& 0 \\
+\hline
+\textbf{TOTAL} & 45761 & 7206 \\
+\multicolumn{2}{|l}{\textbf{ACCURACY}} & 0.86 \\
+\end{longtable}
+\end{small}
 
 \section{Bitrate Ladders}
 
@@ -191,7 +264,6 @@ bitrate, the bitrate standard deviation, and the median.
 \multicolumn{7}{|l}{\textbf{AVERAGE}} & 0.12 \\
 \end{longtable}
 \end{small}
-\newpage
 
 \begin{figure}[!h]
   \centering
@@ -210,8 +282,6 @@ average RMSE shown at the end of \Cref{tab:bitrate_ladders_stats}. Eventually,
 63 titles have an RMSE less than 0.12, and 87 less than 0.16.
 \Cref{fig:bl_comparison_good_1} and \Cref{fig:bl_comparison_good_2} are two
 examples of reconstruction which RMSE is 0.12 and 0.16 respectively.
-
-\newpage
 
 \begin{figure}[!h]
   \centering
