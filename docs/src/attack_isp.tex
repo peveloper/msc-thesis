@@ -1,10 +1,14 @@
-\chapter{ISPs as adversaries}\label{sec:attack_isp}
+\chapter{End-to-End Attack Scenario}\label{sec:attack_isp}
 
 Of great importance to our approach, is aquiring real-time network traffic,
 with downstream throughput being our only focus; here we discuss the potential
 scenarios that allow adversaries to obtain such information, and describe how,
-in particular ISPs, could make use of it, to identify video streaming and
-profile users based on their streaming habits.
+in particular ISPs, as described in \Cref{sec:privacy}, may be collecting
+personal data on behalf of goverments, or may independently decide to profile
+users to attract companies that in turn could target customers with ad-hoc
+advertising. This scenario can be abstracted and generalized, by considering
+the attacker, as a subject that has compromised, or has gained access to, a
+node between the client's device and the server sending the video-stream.
 
 \section{Netflix-ISP relationship}
 
@@ -30,7 +34,7 @@ depending on client characteristics and network conditions, generating URLs
 that are passed back to the client device, that is now able to "communicate"
 with the OCAs.
 
-\todo{insert an example of URL, and explain how ISP cannot associate a URL to a
+\todo{insert an example of URL, and explain how $i$ cannot associate a URL to a
 specific title in a trivial way}
 
 Netflix partners with ISPs in the deployment of their CDN, following are
@@ -75,26 +79,29 @@ information about the network structure, to saturate a link between the user
 and the server, and estimate fluctuations of congestion by sending probes
 remotely and observing queueing delays in routers \cite{side_channel}. 
 
-We will now present the relevant phases and tools needed for an ISP to perform
-an attack, considering the ISP an \emph{on-path} attacker.
+We will now present the relevant phases and tools needed for an evil party $i$
+to carry on such an attack. For the rest of this chapter, we will consider $i$
+as an \emph{on-path} attacker in control of a network device throughout which,
+video traffic travels.
 
 \section{Video Fingerprinting}
 
-In order to identify video stream traffic of a specific user, the ISP needs to
-build a database of video fingerprints to match against. To build such a
-database, the ISP needs to have access to a network interface, control its
-inbound bandwidth, (to get different levels of quality for each title), and
-capture incoming traffic passing through it.
+In order to identify a user's video stream traffic capture, attacker $i$ needs
+to first build a database of video fingerprints to be compared with. To build
+such a database, $i$ needs to have access to a network interface, be able to
+control its inbound bandwidth, (to get different levels of quality for each
+title), and to capture incoming traffic passing through it.
 
-In order to control the incoming bandwidth, the ISP could either limit it
-directly onto a generic L4 switch, or decide to connect
-any UNIX-like machine and throttle the throughput of its main ethernet
-interface. We will consider the scenario in which the ISP limits the bandwidth
-of the ethernet interface of the switch, (less noisy and more stable).
+$i$ needs to be in control of some network interface to be able to throttle its
+bandwidth. Depending on the infrastructure $i$ is in possess of, he could
+either decide to limit its bandwidth on the ethernet interface on its machine,
+or to be able to program a general L4 network switch. In general limiting the
+network bandwidth on a router or a switch may result in less deviation when
+measuring the overall  inbound throughput, or bitrate.
 
 The value of the enforced bandwidth determines the quality (bitrate) of the
 content that will be captured. Assuming that each title has a unique bitrate
-ladder, the ISP should come up with an ad-hoc policy for every video to
+ladder, attacker $i$ should come up with an ad-hoc policy for every video to
 faithfully reconstruct the quality levels of it. While correct, a more viable
 approach to this problem, would be to just consider a range of bitrates capable
 of spanning the space of possible quality levels. 
@@ -115,7 +122,7 @@ the values in \Cref{tab:bandwidths}.
   \label{tab:bandwidths}
 \end{table}
 
-The ISP can now connect a UNIX-like machine to the switch's network interface
+$i$ can now connect a UNIX-like machine to the switch's network interface
 with bandwidth limit \emph{b}, and invoke \texttt{adudump} to infer the size of
 each \emph{application data unit} ADU by processing TCP/IP packet header
 traces that generate \emph{a-b-t} connection vectors \cite{hernandez}.
@@ -185,72 +192,72 @@ times becomes. More on the effect of quiet times is described in
 
 \subsection{Identifying Netflix traffic}\label{dns}
 
-In order to identify specific video traffic from a Netflix CDN, the ISP could
-either inspect the DNS response packets or the TLS handshake messages, and
-perform a DNS lookup for each video every time, or to maintain an updated list
-of IP addresses with mappings to the recorded traffic. Then all the ISP is left
+In order to identify specific video traffic from a Netflix CDN, attacker $i$
+could either inspect the DNS response packets or the TLS handshake messages,
+and perform a DNS lookup for each video every time, or to maintain an updated
+list of IP addresses with mappings to the recorded traffic. Then all he is left
 with, is a mixed trace of audio and video segments. Each Netflix audio segment
 represents about 16 seconds of playback, while every video segment corresponds
-to a 4 second playback. The ISP could now decide to either filter out audio
-segments by either thresholding on the size of ADUs, as done by Reed et Al (at
-200 kilobytes), or to consider audio as part of the fingerprint of a title. The
-200 kilobytes threshold represent a good heuristic when considering traces
-recorded at high bandwidth levels, in fact, audio segments sizes are around 198
-kilobytes, whereas if considering the same title at a low level of bandwidth
-(less than 1 Mbps indicatively), one cannot distinguish audio and video
-segments by their size. For this reason, we consider an approach that does not
-filter out audio segments. In \Cref{sec:approach} we highlight the difference
-between the two methods.
+to a 4 second playback \cite{netflix-real-time}. Reed et Al's approach is to
+threshold ADU sizes to be at least 200 kilobytes. The reason behind their
+choice is that they observed the size of audio segments to be $\approx 198$
+kilobytes. Throughput the testing of our system, we observed how this heuristic
+can no longer be applicable without a loss of information occurring in
+low-bandwidth settings. We noticed how with an enforced bandwidth level $b < 1$
+\emph{Mbps}, the sizes of transmitted video segments are less than 200
+kilobytes, although in general, the number of segments with less than 200
+kilobytes is low. Thus, We have decided to filter ADU segments with size less
+than 100 kilobytes, as described in \Cref{sec:approach}.
 
 \subsection{Building a database of fingerprints}
 
-The ISP can now automate the streaming of Netflix videos, and build a database
-of such fingerprints. Here, the ISP is free to use a method of storage of
+The attacker can now automate the streaming of Netflix videos, and build a
+database of fingerprints. Here, $i$ is free to use a method of storage of
 choice, depending on the granularity of the features required to represent each
 title, and on the cardinality of the set of titles it wants to capture.  In
 addition, as Netflix is constantly adding/removing titles from its library, the
-ISP is required to constantly keeping updated the database to guarantee that
-the attack can target newly added titles.
+attacker is required to constantly keeping updated the database to guarantee
+that the attack can target newly added titles.
 
+\newpage
 \section{Capturing video traffic}
 
-In order to capture video traffic to match it against a database of collected
-fingerprints, it requires the ISP to be in possess of a generic L4 switch
-capable of mirroring traffic from a port to another one. Then any UNIX-like
-system that implements \emph{libpcap} is suitable for capturing inbound traffic
-on the mirrored port, as presented below in \Cref{fig:schema}.
+Irregardless of the compromised device the attacker $i$ has gained access to,
+it needs to be capable of mirroring traffic from a port to another one. Then
+any UNIX-like system that implements \emph{libpcap} is suitable for capturing
+inbound traffic on the mirrored port, as presented below in \Cref{fig:schema}.
 
-\todo{modify this image}
+\todo{Insert attacking scenario image}
 
 \begin{figure}[!htb]
   \centering
-  \includegraphics[width=\columnwidth]{img/schema.png}
+  \includegraphics[width=\columnwidth]{img/playback.png}
   \caption{Traffic capture scenario.}
   \label{fig:schema}
 \end{figure}
 
 In this scenario, the client is unaware of the fact that its traffic is being
-mirrored and recorded by the ISP, and there is no practical way for him to
+mirrored and recorded by $i$, and there is no practical way for him to
 claim that. On the other hand, a user concerned with its privacy, may avoid
 such attack, as described in \Cref{sec:vpn}.
 
-\subsection{Data acquired by the ISP}
+\subsection{Data acquired by the attacker}
 
 Captured traffic, as shown in \Cref{lst:adutrace}, apart from the size of each
 segment and quiet times, include timestamps of each ADU, and source and
-destination IP addresses. With this information, the ISP is able to reconstruct
-streaming habits of every targeted user (identifiable by the source IP
-address),  by looking at what time he/she does usually connect to the platform,
-identifying the content of the stream (matching to fingerprints), and by
-analyzing how much time the user spends watching content. Thus the ISP can
+destination IP addresses. With this information, the attacker is able to
+reconstruct streaming habits of every targeted user (identifiable by the source
+IP address),  by looking at what time he/she does usually connect to the
+platform, identifying the content of the stream (matching to fingerprints), and
+by analyzing how much time the user spends watching content. Thus $i$ can
 aggregate user's collected data and build a database of user profiles to use it
 for its own will. Data about a particular user is no longer in the solely hands
-of Netflix, as one could argue it should be, but it now resides in some ISP
-database, potentially exploitable and profitable, with any prior consent.
+of Netflix, as one could argue it should be, but it now resides in some private
+database, potentially exploitable and profitable, with any given prior consent.
 
 \subsection{Matching Captured traffic to fingerprints}
 
-The ISP can now identify the captured trace by comparing it to the saved
+$i$ can now identify the captured trace by comparing it to the saved
 fingerprints.  Based on the type of data structure used to store them, there
 are several methods to search and retrieve the best candidate for a given
 trace. We will not articulate this process here, but we rather present our own
@@ -258,10 +265,10 @@ solution later in \Cref{sec:approach}.
 
 \subsection{Possible countermeasures}\label{sec:vpn}
 
-In order to safely stream Netflix videos without the ISP being able to identify
-the content of them, a user particularly concerned about its privacy, (e.g.
-public figures, politicians, government agency employees), may decide to use a
-VPN. When using a VPN, the user, still needs the ISP to connect to the
+In order to safely stream Netflix videos without the attacker $i$ being able to
+identify the content of them, a user particularly concerned about its privacy,
+(e.g.  public figures, politicians, government agency employees), may decide to
+use a VPN. When using a VPN, the user, still needs the ISP to connect to the
 internet, but instead of having the ISP communicating directly with the desired
 resource, the ISP now "talks" with the VPN server. It is responsibility of the
 VPN server in fact, to establish a communication with the webpage the user

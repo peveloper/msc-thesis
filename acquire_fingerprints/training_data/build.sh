@@ -92,9 +92,15 @@ compare_bitrates() {
         files=$(ls -la | grep -v '[0-9]*_[0-9]*' | awk '$9 ~ /^[0-9]+/ {print $9}' | cut -d '_' -f1 | sort | uniq | grep $title)
 
         #TODO add metric for the error and plot it in the graph
+        adu_file=$(echo $files | awk '{print $1}')
+        har_file=$(echo $files | awk '{print $2}')
+
+        filename=$(echo $files | cut -d '.' -f1).bl_comparison
+
+        paste $adu_file $har_file > $filename 
 
         plot_dir="plots/"
-        gnuplot -c bitrate_ladders "${files}" $plot_dir
+        gnuplot -c bitrate_ladders $filename $plot_dir
 
     done
 }
@@ -106,12 +112,14 @@ export -f gen_plots
 export -f compare_bitrates
 
 #ls ../log/ | parallel get_adus 1
-get_hars 
+#get_hars 
 
 #ls | grep -e '^[0-9]*_[0-9]*.adu$' | parallel build_fingerprint_db > db.adu
-ls | grep -e '^[0-9]*_[0-9]*.har$' | parallel build_fingerprint_db > db.har
+#ls | grep -e '^[0-9]*_[0-9]*.har$' | parallel build_fingerprint_db > db.har
 
 #gen_plots "adu"
-gen_plots "har"
+#gen_plots "har"
 
 compare_bitrates
+cd stats && cat *
+#cd stats && tail * -n1 --quiet | awk '{sum+=$2; print $2} END {print sum / NR}' > avg_rmse

@@ -1,17 +1,21 @@
-set terminal pngcairo size 1200, 800 dashed enhanced
-files=ARG1
+set terminal pngcairo size 1200, 800 dashed enhanced font "Helvetica,18"
 plot_dir=ARG2
-print plot_dir
-filename = ARG1[1:strstrt(files, ".") -1]."_adu_vs_har"
+filename=ARG1
 set xlabel "Enforced Throughputs (bits/s)" offset -0.1,0,0
 set ylabel "AVG Bitrate (bits/s)"
-set title sprintf("Real vs. Reconstructed Bitrate Ladders ID: %s (120s playback)", filename) noenhanced
 set decimal locale
-set xtics font ", 10"
-set ytics font ", 10"
-set key outside
 set grid
+set key bottom right
 set format "%.1s%c"
 set output sprintf("%s%s_ladder.png", plot_dir, filename)
-print words(files)
-plot for [file in files] file using 1:2 with lp t file[1:strstrt(file,".")+3]
+stats_filename="stats/".filename
+file=filename[1:strstrt(filename, ".")-1]
+set print stats_filename
+stats filename using (column(2) - column(4)) nooutput name "diff"
+stats filename using (column(2)) nooutput name "real"
+stats filename using (column(4)) nooutput name "obs"
+rmse=sqrt(diff_sumsq / diff_records) / obs_mean
+record=sprintf("%s & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f & %.2f", file, real_mean / 1000000, real_stddev / 1000000, real_median / 1000000, obs_mean /1000000, obs_stddev / 1000000, obs_median/ 1000000 , rmse)
+print record
+set title sprintf("Real vs. Reconstructed Bitrate Ladders ID: %s, μ-normalized RMSE %.2f", file, rmse) noenhanced
+plot filename u 1:4 with lp t "REAL", '' u 1:2 with lp t "RECONSTRUCTED"
