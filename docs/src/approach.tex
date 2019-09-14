@@ -9,7 +9,7 @@ network interface, able to obtain fingerprints for a limited number of Netflix
 titles at various enforced bandwidth levels, and reconstructed each video's
 bitrate ladder. We compare our reconstructed bitrate ladders with the bitrate
 ladders constructed from HTTP header (HARs), and report, for each one its the
-RMSE.  Eventually, we evaluate the robustness of the saved fingerprints, by
+RMSE. Eventually, we evaluate the robustness of the saved fingerprints, by
 feeding to our identification mechanism, several test-captures of video IDs
 (present in our fingerprint's database), at \emph{unseen} bandwidth levels. In
 this phase we study the impact of tuning the parameters of the system in
@@ -20,10 +20,10 @@ report relevant statistics of each test.
 
 Our own version of the attack, conversely to the one depicted in
 \Cref{fig:schema}, does not include the ISP as a potential adversary, nor does
-involve an attacker that has compromised an ISP CDN.  We consider a specific
-case in which the attacker is a malicious user \emph{i}, with access to the
-same network an honest client is using to stream a Netflix title. Attacker
-\emph{i} has:
+involve an attacker that has compromised an ISP where the OCA resides. We
+consider a specific case in which the attacker is a malicious user \emph{i},
+with access to the same network an honest client is using to stream a Netflix
+title. Attacker \emph{i} has:
 
 \begin{itemize}
     \item either installed a passive TAP device on a LAN
@@ -34,10 +34,10 @@ same network an honest client is using to stream a Netflix title. Attacker
 For each of the aforementioned scenarios, the steps required for the attacker
 \emph{i} to identify video traffic of another user, are the same: the first
 phase consists of recording fingerprints of each Netflix title, process them,
-store them in a persisent (and convenient for search and retrieval) data
-structure, while the second phase consists of exploiting the compromise device
-in the network to capture user's traffic and identify the content of the stream
-by querying the database of fingerprint.
+store them in a persisent, (and convenient for search and retrieval), data
+structure, and a second phase that exploits the compromise device in the
+network to capture user's traffic, and identify the content of the stream, by
+querying the database of fingerprint.
 
 \section{Video Fingerprinting}
 
@@ -86,17 +86,14 @@ use of adudump, instead, to record traffic, we use tcpdump \cite{libpcap}. The
 main reason behind this choice, is the fact that adudump has been conceived to
 reconstruct data segments sizes in an online fashion. By doing so, the time
 spent by adudump processing each segment, creates an overhead that in turn,
-results in noisy measurements.  Adudump can work in an offline-fashion, simply
+results in noisy measurements. Adudump can work in an offline-fashion, simply
 by passing as input a \texttt{pcap} \cite{libpcap} file, that gets generated
-when invoking tcpdump.  We have tested and analyzed this behaviour and visual
-evidence is presented in \Cref{fig:online_vs_offline}.
-
-\todo{add plots of adudump's behaviour when invoked online vs on a .pcap file}
+when invoking tcpdump. 
 
 \subsection{Crawler}
 
 The script responsible of crawling the Netflix catalogue is
-\texttt{crawler.py}.  We use the \texttt{scrapy} Python library \cite{scrapy}
+\texttt{crawler.py}. We use the \texttt{scrapy} Python library \cite{scrapy}
 to get a list of Netflix titles divided by genre. Note that, for the sake of
 simplicity, we have decided to work only with movies, as for TV series, we
 would have need to add checks due to the autoplay function of subsequent
@@ -125,7 +122,6 @@ resulting CSV have been filtered to include just one occurrence of each title.
 cat netflix_titles/titles.csv | cut -d , -f1 | sort | uniq
 \end{bash_script}
 
-\newpage
 \subsection{Bandwidth Manipulation}
 
 In order to be able to manually control the bandwidth of the ethernet
@@ -204,7 +200,7 @@ The second function is responsible for generating the bitrate ladders of each
 title, and to save all fingerprints in a text file. Given a trace at a
 particular bandwidth level $b$, we compute the average bitrate as:
 
-\begin{equation*}
+\begin{equation*}\label{eq:avg_bitrate}
     AVG_{bitrate} = \dfrac{8}{4} \cdot \dfrac{\Sigma_{i=0}^{n} \hspace{2pt} adu_i}{n}
 \end{equation*}
 
@@ -214,14 +210,14 @@ by 8 to get a measure in \emph{bits/s}.
 
 We repeat the process decribed above, also by generating fingerprints from the
 HAR records we capture with our proxy. By doing so, we can reconstruct the
-\emph{true} bitrate ladders, for each capture, and use them as a term of
-comparison to asses the quality of the ADU's reconstruced ladders. For each
+\emph{true} bitrate ladders for each capture, and use them as a term of
+comparison to asses the quality of the ADU-based reconstruced ladders. For each
 ADU reconstructed bitrate ladder, we compute the \emph{mean-normalized} RMSE
-with the HAR reconstructed ones as shown in \Cref{sec:rmse}.
+with respect to the HAR reconstructed ones as shown in \Cref{sec:results}.
 
 \begin{figure}[!h]
   \centering
-  \includegraphics[width=\columnwidth]{img/fingerprints.png}
+  \includegraphics[width=.7\columnwidth]{img/fingerprints.png}
   \caption{Overview of the process of acquiring video fingeprints.}
   \label{fig:fingerprints}
 \end{figure}
@@ -229,7 +225,7 @@ with the HAR reconstructed ones as shown in \Cref{sec:rmse}.
 
 \section{Capturing video traffic}\label{sec:testing}
 
-In order to evaluate the attack, we capture a set of video traffic traces (the
+In order to evaluate the attack, we capture a set of video traffic traces, (the
 ones the attacker $i$ can retrieve by mirroring traffic on the compromised
 device), at unseen enforced bandwidths. In practice, our database of
 fingerprints hosts 100 movie titles at the 13 bandwidth levels presented in
@@ -265,13 +261,6 @@ fingerprints of captured traffic to query the database for matches.
 
 The Python script queries the Java process running the KD-tree, that returns a
 list of possible matches for the given captured trace.
-
-%\begin{figure}[!h]
-  %\centering
-  %\includegraphics[width=.6\columnwidth]{img/identification.png}
-  %\caption{Overview of the process of identification.}
-  %\label{fig:identification}
-%\end{figure}
 
 \subsection{KD-Tree}\label{sec:KD}
 
@@ -318,16 +307,16 @@ ID              AVG_BITRATE  SEGMENTS
 896970_15000    3038         321427,198559,113973 ...
 \end{bash_script}
 
-The \texttt{ID} of the record is formed by the video ID, and the
-enforced bandwidth at which the title has been captured
-(\texttt{896970\_15000}), represents movie ID 896970 \emph {Red Heat},
-recorded at 15.0 \emph{Mbps}. Note how the number of segments for each
-record is not fixed, as explained in \Cref{sec:problems}.  For each
-record, we create an instance of \texttt{Movie}, in which we store its
-ID, the average bitrate and its segments. Based on the number of
-segments $s$, we build $s-1$ \texttt{Window}s of $\omega$ segments.
-For each window, we build a search key of dimension $K$, in one of the
-following modes, expressed by $M$: 
+The \texttt{ID} of the record is formed by the video ID, and the enforced
+bandwidth at which the title has been captured.  \texttt{896970\_15000},
+represents movie ID 896970 \emph {Red Heat}, recorded at 15.0 \emph{Mbps}. Note
+how the number of segments for each record is not fixed, because of distortion
+that adds to the segment size inference, as reported in \Cref{sec:results}.
+For each record, we create an instance of \texttt{Movie}, in which we store its
+ID, the average bitrate and its segments.  Based on the number of segments $s$,
+we build $s-1$ \texttt{Window}s of $\omega$ segments.  For each window, we
+build a search key of dimension $K$, in one of the following modes, expressed
+by $M$: 
 
 In case $M$ \texttt{== 0}, the key gets constructed by assigning the
 total sum of the segment sizes in the window as first dimension; the
@@ -336,7 +325,7 @@ within $\dfrac{\omega}{K-1}$ segments with respect to the
 aforementioned total in the first dimension.
 
 In case $M$ \texttt{== 1}, instead we store the average bitrate
-(computed as in \Cref{sec:idk}) of all segments in the window as
+(computed as in \Cref{eq:avg_bitrate}) of all segments in the window as
 first dimension, then each of the $K-1$ dimensions is the average
 bitrate of $\dfrac{\omega}{K-1}$ segments, normalized again by the
 first dimension.

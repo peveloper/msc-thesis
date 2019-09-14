@@ -10,7 +10,7 @@ In \Cref{sec:results} we have given both quantitative and visual evidence of the
 results achieved with our methodology. We now extend the analysis by abstracting
 the context to a more realistic scenario. 
 
-Throughout the description of our approach, we have ignore potential factors
+Throughout the description of our approach, we have ignored potential factors
 that may be source of various types of errors when carrying out the attack in a
 real scenario (\emph{e.g.} a public WLAN network). 
 
@@ -19,23 +19,59 @@ watching 4 minutes of video playback for a limited number of Netflix titles
 (100), in stable network conditions, can faithfully reconstruct bitrate ladders
 of movies encoded with an average bitrate greater than 1Mbps across 13
 different enforced bandwidth levels. The 100 reconstructed bitrate ladders are
-uniquely identifiable by their average bitrate, standard deviation, or median.
+uniquely identifiable by their bitrate's average, standard deviation, or
+median.
 
-Our system identifies with approximately 86\% of accuracy the same set of
-video titles across 8 \emph{unseen} bandwidth levels not previously captured in the
+Our system identifies with approximately 86\% of accuracy the same set of video
+titles across 8 \emph{unseen} bandwidth levels not previously captured in the
 database. We have tested this behavior for several window sizes and conclude
 that for majority of the titles, the average bitrate of, up to 20 subsequent
-ADUs, represents a robust feature to reveal the content being streamed.
+ADUs, represents a robust feature to represent the a 4 minutes video title.
 
-\subsection{Metrics}
-
+\newpage
 \section{Benefits}
 
-\todo{finish}
+The obtained results, even if on a limited number of titles, have shown
+potential for possible further research. In particular, the accuracy at which
+bitrate ladders have been reconstructed, and the fact that the average observed
+bitrate has proven to be a good descriptor of the complexity and structure of
+video streamed content, are promising facts.
 
+In order to confirm this claims, we would need to collect fingerprints for the
+entire Netflix catalogue, and re-evaluate the system. 
+
+The key aspects of this approach are:
+
+\begin{itemize}
+    \item As DASH is likely to be a technology that won't be suddenly abonded,
+        chanches that our system will work in the near future are considerably
+        high.
+    \item In order to identify a given capture trace, the time spent executing
+        a search query for matches, considering the full Netflix catalogue, is
+        considerably low as shown in \cite{netflix-real-time}.
+    \item Keeping updated the system can be done trivially. One could keep
+        always a fresh version of a database of fingerprints by crawling
+        Netflix for new added titles. Contrary to machine-learning approaches,
+        we would not need to re-train a model whenever a new title is available.
+    \item Fidelity of bitrate ladder reconstructions, and accuracy of video
+        identification have shown to depend on factors such as network
+        bandwidth and bitrate levels of each encoded title. Having stated that,
+        with the rising growth of the streaming industry, and the growth rate
+        at which technology evolves, it is for us reasonable to assume good
+        quality network conditions, and high-bitrate encodings of new movies.
+    \item An attacker, has the ability to target multiple users and is able to
+        map every ADU to each one of them by looking at the \texttt{dst} IP
+        addresses. Indeed, if the network bandwidth is good enough to support
+        high quality streaming for all the users, then the probability of
+        identifying traffic of a set of $n$ users should remain the same as
+        when targeting a single user.
+\end{itemize}
+
+\newpage
 \section{Shortcomings and Feasibility}
 
-\todo{finish}
+When considering a real case scenario, we need to re-introduce factors
+abstracted away in our proof-of-concept.
 
 The presence of various users in the network, for instance, may potentially
 impact the quality of our resconstruction, especially if the content being
@@ -43,6 +79,61 @@ streamed is encoded at a low bitrate, or if the network bandwidth is unstable
 (could cause the Netflix buffering algorithm to jump over different bitrate
 levels during a 4 minute capture. 
 
+The fingerprints that we have collected, apart from constituting a limited
+sized version of the entire Netflix catalogue, consist of traffic traces of 4
+minutes between the playback time 4:00-8:00. This it self, is a major
+limitation, if the user's video playback is laready past that time frame.
+
+Both our modified version, and the original \cite{netflix-real-time} KD-Tree
+use a considerably high amount of memory to run. Reason for which the whole
+identification system have been running on a \texttt{t2.xlarge} EC2 Amazon
+instance. Thus an attacker in a public WLAN would either need a high-end
+workstation, or access to a fast cloud resource that could run Java.
+
+In addition, as already discussed in \Cref{sec:vpn} this attack is no longer
+feasible if the targeted user runs a VPN not blocked by Netflix. 
+
+\newpage
 \section{Future Work}
 
-\todo{finish}
+In this section we first present possible improvements to our system, as well
+as our perspective on how different techniques could prove to be worth of
+investigation.
+
+\subsection{Possible Improvements}
+
+To overcome the fact that our system is susceptible to poor network conditions,
+we should investigate more deeply the behavior of per-segment statistics as the
+packet-interarrival times distribution along our capture, or by analyzing
+traffic bursts rather than only video segment sizes as in \cite{burst}.
+
+An aspect that requires further work, is certainly the size of both training
+and evaluation dataset, as more sound and general analysis are needed to argue
+that the constructed system can be a treath in a real scenario.  This is true
+both for assessing the quality of reconstructed bitrate ladders and to
+subsequently identify traffic. 
+
+\subsection{Research}
+
+Recent work (2017) on identifying video stream traffic with convolutional neural
+networks has been shown to achieve interesting results in terms of
+accuracy, as in \cite{burst}, where they evaluated their model on 100,
+60-seconds traffic captures, nearly 98\% of the movies were matched. 
+
+Machine learning's purpose is to learn a model that can generalize and be
+flexible when applied to test data. We have various proof of how ML techniques
+have being successful when applied in the context of traffic analysis, even if
+in majority of the cases the test sets are limited to hundreds of samples.
+
+Thus, what should concern future researchers the most, is to produce sample
+tests which evaluation metrics can constitute better proof of what most current
+research have already shown, that DASH and VBR are two major source of
+information leakage, and after cases like \cite{analytica} that have left the
+public in shock, it is responsibility of the streaming industry to come up with
+more sound techniques to ensure user's privacy.
+
+Among those techniques, platforms could decide to opt for solutions that
+combine different HTTPs requests in a unique one, by adding distortion to the
+average bitrate; although this seems a trivial task, a proper solution that
+will not impact the quality of experience of users, has not yet been introduced
+nor adopted.

@@ -34,9 +34,6 @@ depending on client characteristics and network conditions, generating URLs
 that are passed back to the client device, that is now able to "communicate"
 with the OCAs.
 
-\todo{insert an example of URL, and explain how $i$ cannot associate a URL to a
-specific title in a trivial way}
-
 Netflix partners with ISPs in the deployment of their CDN, following are
 presented two different policies:
 
@@ -62,12 +59,12 @@ eavesdropping a particular communication, only needs to compromise a node on
 the path the communication travels through. An \emph{on-path} attacker could
 easily gain passive access to network and transport layers, and start capturing
 network traffic. This can include malicious or compromised Wi-Fi access
-points, routers, tapped network cables and ISPs. 
+points, routers, tapped network cables, and ISPs. 
 
 Rather than just attacking physical devices, leaks of information could occur
 in network connections, in which an attacker physically close to the victim,
 could make use of a \emph{Wi-Fi sniffer} to estimate traffic by capturing
-physical layer WLAN packets.  Information may be encrypted by 802.11, and the
+physical layer WLAN packets. Information may be encrypted by 802.11, and the
 sniffer may not take into account packet retransmissions at the session layer
 nor multiple TCP/IP flows on the same link, potentially causing noise on the
 observation. Despite so, Reed et Al. \cite{leaky_streams}, have shown that it
@@ -81,7 +78,7 @@ remotely and observing queueing delays in routers \cite{side_channel}.
 
 We will now present the relevant phases and tools needed for an evil party $i$
 to carry on such an attack. For the rest of this chapter, we will consider $i$
-as an \emph{on-path} attacker in control of a network device throughout which,
+as an \emph{on-path} attacker in control of a network device, throughout which,
 video traffic travels.
 
 \section{Video Fingerprinting}
@@ -89,19 +86,19 @@ video traffic travels.
 In order to identify a user's video stream traffic capture, attacker $i$ needs
 to first build a database of video fingerprints to be compared with. To build
 such a database, $i$ needs to have access to a network interface, be able to
-control its inbound bandwidth, (to get different levels of quality for each
-title), and to capture incoming traffic passing through it.
+control its inbound bandwidthn to get different levels of quality for each
+title, and to capture incoming traffic passing through it.
 
 $i$ needs to be in control of some network interface to be able to throttle its
 bandwidth. Depending on the infrastructure $i$ is in possess of, he could
 either decide to limit its bandwidth on the ethernet interface on its machine,
 or to be able to program a general L4 network switch. In general limiting the
-network bandwidth on a router or a switch may result in less deviation when
-measuring the overall  inbound throughput, or bitrate.
+network bandwidth on a router or a switch, may result in less deviation when
+measuring the overall inbound throughput, or bitrate.
 
 The value of the enforced bandwidth determines the quality (bitrate) of the
 content that will be captured. Assuming that each title has a unique bitrate
-ladder, attacker $i$ should come up with an ad-hoc policy for every video to
+ladder, attacker $i$ should come up with an ad-hoc policy, for every video to
 faithfully reconstruct the quality levels of it. While correct, a more viable
 approach to this problem, would be to just consider a range of bitrates capable
 of spanning the space of possible quality levels. 
@@ -124,8 +121,8 @@ the values in \Cref{tab:bandwidths}.
 
 $i$ can now connect a UNIX-like machine to the switch's network interface
 with bandwidth limit \emph{b}, and invoke \texttt{adudump} to infer the size of
-each \emph{application data unit} ADU by processing TCP/IP packet header
-traces that generate \emph{a-b-t} connection vectors \cite{hernandez}.
+each \emph{application data unit} ADU, by processing TCP/IP packet header
+traces, that generate \emph{a-b-t} connection vectors \cite{hernandez}.
 
 \subsection{The \emph{a-b-t} model}
 
@@ -156,18 +153,6 @@ As one can notice from a sample traffic trace from Netflix, the two endpoints
 behave in a sequential fashion, as shown by the \texttt{SEQ} flag in
 \Cref{lst:adutrace}.
 
-\begin{adu}[caption={Incoming traffic trace of Mulan, captured at 10Mbps (first 10 segments).}, label={lst:adutrace}]
-ADU: 1565880580.152388 192.168.0.157.54924 <1 45.57.19.134.443 198837 SEQ 0.804088
-ADU: 1565880581.321246 192.168.0.157.54924 <1 45.57.19.134.443 198760 SEQ 0.907568
-ADU: 1565880582.688335 192.168.0.157.54924 <1 45.57.19.134.443 199407 SEQ 1.052862
-ADU: 1565880591.912352 192.168.0.157.54974 <1 45.57.19.134.443 525046 SEQ 0.058709
-ADU: 1565880592.168340 192.168.0.157.54968 <1 45.57.19.134.443 275568 SEQ 0.558654
-ADU: 1565880592.168344 192.168.0.157.54974 <1 45.57.19.134.443 305115 SEQ 0.062028
-ADU: 1565880592.172495 192.168.0.157.54982 <1 45.57.19.134.443 198735 SEQ 0.670224
-ADU: 1565880592.697314 192.168.0.157.54974 <1 45.57.19.134.443 236474 SEQ 0.179115
-ADU: 1565880592.820292 192.168.0.157.54982 <1 45.57.19.134.443 286547 SEQ 0.106913
-ADU: 1565880592.820395 192.168.0.157.54968 <1 45.57.19.134.443 198530 SEQ 0.310506
-\end{adu}
 
 \subsection{Inference}
 
@@ -196,18 +181,19 @@ In order to identify specific video traffic from a Netflix CDN, attacker $i$
 could either inspect the DNS response packets or the TLS handshake messages,
 and perform a DNS lookup for each video every time, or to maintain an updated
 list of IP addresses with mappings to the recorded traffic. Then all he is left
-with, is a mixed trace of audio and video segments. Each Netflix audio segment
-represents about 16 seconds of playback, while every video segment corresponds
-to a 4 second playback \cite{netflix-real-time}. Reed et Al's approach is to
-threshold ADU sizes to be at least 200 kilobytes. The reason behind their
-choice is that they observed the size of audio segments to be $\approx 198$
-kilobytes. Throughput the testing of our system, we observed how this heuristic
-can no longer be applicable without a loss of information occurring in
-low-bandwidth settings. We noticed how with an enforced bandwidth level $b < 1$
-\emph{Mbps}, the sizes of transmitted video segments are less than 200
-kilobytes, although in general, the number of segments with less than 200
-kilobytes is low. Thus, We have decided to filter ADU segments with size less
-than 100 kilobytes, as described in \Cref{sec:approach}.
+with, is a mixed trace of audio and video segments. 
+
+Each Netflix audio segment represents about 16 seconds of playback, while every
+video segment corresponds to a 4 second playback \cite{netflix-real-time}. Reed
+et Al's approach is to threshold ADU sizes to be at least 200 kilobytes. The
+reason behind their choice is that they observed the size of audio segments to
+be $\approx 198$ kilobytes. Throughput the testing of our system, we observed
+how this heuristic can no longer be applicable without a loss of information
+occurring in low-bandwidth settings. We noticed how with an enforced bandwidth
+level $b < 1$ \emph{Mbps}, the sizes of transmitted video segments are less
+than 200 kilobytes, although in general, the number of segments with less than
+200 kilobytes is low. Thus, We have decided to filter ADU segments with size
+less than 100 kilobytes, as described in \Cref{sec:approach}.
 
 \subsection{Building a database of fingerprints}
 
@@ -216,8 +202,21 @@ database of fingerprints. Here, $i$ is free to use a method of storage of
 choice, depending on the granularity of the features required to represent each
 title, and on the cardinality of the set of titles it wants to capture.  In
 addition, as Netflix is constantly adding/removing titles from its library, the
-attacker is required to constantly keeping updated the database to guarantee
+attacker is required to constantly keeping updated the database, to guarantee
 that the attack can target newly added titles.
+
+\begin{adu}[caption={Incoming traffic trace of Mulan, captured at 10Mbps (first 10 segments).}, label={lst:adutrace}]
+ADU: 1565880580.152388 192.168.0.157.54924 <1 45.57.19.134.443 198837 SEQ 0.804088
+ADU: 1565880581.321246 192.168.0.157.54924 <1 45.57.19.134.443 198760 SEQ 0.907568
+ADU: 1565880582.688335 192.168.0.157.54924 <1 45.57.19.134.443 199407 SEQ 1.052862
+ADU: 1565880591.912352 192.168.0.157.54974 <1 45.57.19.134.443 525046 SEQ 0.058709
+ADU: 1565880592.168340 192.168.0.157.54968 <1 45.57.19.134.443 275568 SEQ 0.558654
+ADU: 1565880592.168344 192.168.0.157.54974 <1 45.57.19.134.443 305115 SEQ 0.062028
+ADU: 1565880592.172495 192.168.0.157.54982 <1 45.57.19.134.443 198735 SEQ 0.670224
+ADU: 1565880592.697314 192.168.0.157.54974 <1 45.57.19.134.443 236474 SEQ 0.179115
+ADU: 1565880592.820292 192.168.0.157.54982 <1 45.57.19.134.443 286547 SEQ 0.106913
+ADU: 1565880592.820395 192.168.0.157.54968 <1 45.57.19.134.443 198530 SEQ 0.310506
+\end{adu}
 
 \newpage
 \section{Capturing video traffic}
@@ -227,12 +226,10 @@ it needs to be capable of mirroring traffic from a port to another one. Then
 any UNIX-like system that implements \emph{libpcap} is suitable for capturing
 inbound traffic on the mirrored port, as presented below in \Cref{fig:schema}.
 
-\todo{Insert attacking scenario image}
-
 \begin{figure}[!htb]
   \centering
-  \includegraphics[width=\columnwidth]{img/playback.png}
-  \caption{Traffic capture scenario.}
+  \includegraphics[width=\columnwidth]{img/schema.png}
+  \caption{Traffic capture scenario of an on-path attacker.}
   \label{fig:schema}
 \end{figure}
 
@@ -247,7 +244,7 @@ Captured traffic, as shown in \Cref{lst:adutrace}, apart from the size of each
 segment and quiet times, include timestamps of each ADU, and source and
 destination IP addresses. With this information, the attacker is able to
 reconstruct streaming habits of every targeted user (identifiable by the source
-IP address),  by looking at what time he/she does usually connect to the
+IP address), by looking at what time the user does usually connect to the
 platform, identifying the content of the stream (matching to fingerprints), and
 by analyzing how much time the user spends watching content. Thus $i$ can
 aggregate user's collected data and build a database of user profiles to use it
@@ -258,7 +255,7 @@ database, potentially exploitable and profitable, with any given prior consent.
 \subsection{Matching Captured traffic to fingerprints}
 
 $i$ can now identify the captured trace by comparing it to the saved
-fingerprints.  Based on the type of data structure used to store them, there
+fingerprints. Based on the type of data structure used to store them, there
 are several methods to search and retrieve the best candidate for a given
 trace. We will not articulate this process here, but we rather present our own
 solution later in \Cref{sec:approach}.

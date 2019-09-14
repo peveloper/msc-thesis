@@ -10,7 +10,7 @@ user's privacy.
 As shown by Reed et Al. \cite{netflix-real-time} anonimity of user's viewing
 activity is at risk. Not for the use that Netflix or other streaming services
 do of user's session data, but because of the risk of a man-in-the-middle
-attack \emph{MITM} carried by an \textit{evil} party that has control over the
+attack, \emph{MITM}, carried by an \textit{evil} party that has control over the
 flow of packets over a network.
 
 In particular, they have shown how the adoption of HTTPS to protect video
@@ -40,7 +40,7 @@ approach is presented in \Cref{sec:approach}
 \subsection{Per-Title Encoding}\label{sec:per-title-encoding}
 
 In December 2015 Netflix announced \cite{per-title-encoding} that it was
-introducing a new method to analyze the complexity of each title and find the
+introducing a new method to analyze the complexity of each title, and find the
 best encoding recipe based on it. Their goal with the adoption of
 per-title encoding was to provide users with better quality streams at a lower
 bandwidth. 
@@ -178,7 +178,7 @@ legislate to protect both industry's and user's rights.
 In 2016, Netflix announced the introduction of HTTPS to protect the content
 being streamed to users. With the addition of TLS on top of HTTP, Netflix aim,
 was to avoid the risk of eavesdropping on unsecure connections, protecting
-themselves and users from third-party applications and governments potentially
+themselves and users, from third-party applications and governments potentially
 collecting viewer's data and streaming habits.
 
 Avoiding deep packet inspection from potential eavesdropper certainly adds
@@ -200,7 +200,7 @@ a potential threat for how the data could be processed and used by parties with
 access to it. One could imagine how government agencies could easily get in
 possession of sensitive information about the nature of the content a
 particular user is interested about, or how ISPs could profit from selling data
-profiles to advertisement companies that in turn would exploit their
+profiles to advertisement companies, that in turn, would exploit their
 information to improve per-user recommendation algorithms.
 
 Considering this trend, it is for us crucial to investigate how parties that
@@ -219,7 +219,7 @@ of \emph{libpcap} \cite{libpcap}, a powerful C library for network traffic
 capture. They acquired for each video, metadata information with a tampering
 tool, and then matched adudump traces against with. The evaluation of their
 method revelaed that they could identify majority of videos by recording only
-20 minutes of traffic each.
+20 minutes of traffic each. 
 
 An earlier proof on how bandwidth analysis could reveal the content of
 ecnrypted traffic, was given by Saponas et Al. \cite{Saponas2007devices}, in
@@ -259,6 +259,17 @@ Similar work has been conducted also by Moser \cite{moser}, who analyzed how
 bitrate ladders could uniquely embed the identity of Netflix titles. In his
 work he further studies the impact of the aggregation of each video's segment
 bandwidth on the overall accuracy of his system. 
+
+Note how in our approach, contrary to Moser's and Reed et Al's scenarios after
+a recent Netflix update to its video player, it is no longer possible to force
+the playback of a movie by simply choosing a certain quality level. This makes
+the process of creating video fingerprints more challenging as we descirbe
+throghout the rest of this document.
+
+In addition, in Reed et Al's work, there is no evidence of TCM multiplexing.
+This is verified by looking at their network capture traces \cite{traces}.
+In \Cref{sec:results} we show how and in which scenarios, this affects our
+measurements.
 
 \section{Structure of this Report}\label{sec:structure}
   

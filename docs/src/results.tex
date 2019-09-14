@@ -41,7 +41,7 @@ As mentioned in \Cref{sec:testing}, our testing dataset consists of the same
 each capture to the identification process, that runs the evaluation by varying
 the window size $\omega$, and the corresponding key size $\kappa$. For every
 run, we then compute the number of matches/mismatches, and report the
-statistics shown in \Cref{lst:stats}. In addition, we plot for each
+statistics shown in \Cref{tab:matches}. In addition, we plot for each
 configuration the number of matches, the number of collisions and the number of
 mismatches. The number of collisions, represents the number of matches from
 different bandwidth levels, (e.g. suppose to have a capture at 6.0 \emph{Mbps},
@@ -120,10 +120,10 @@ $\omega(\kappa)$ &
 \section{Bitrate Ladders}
 
 At first, we evaluate the accuracy of the reconstruced bitrate ladders by
-computing the RMSE between each one and its corresponding HAR-based bitrate
-ladder. We have decided to use the RMSE, as it is a well-known indicator that
-aggregates the residuals to give a measure of the magnitude of error in our
-predictions, and it is computed as follows.
+computing the RMSE between each one of them and their corresponding HAR-based
+bitrate ladder. We have decided to use the RMSE, as it is a well-known
+indicator that aggregates the residuals to give a measure of the magnitude of
+error in our predictions, and it is computed as follows.
 
 Let $Y=\{y_1, y_2 \dots y_n\}$ be the set of HAR-based bitrates for movie $m$,
 at enforced bandwidth $b$, and let $\hat{Y}=\{\hat{y}_1, \hat{y}_2 \dots

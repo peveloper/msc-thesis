@@ -1,7 +1,7 @@
 \addchap*{\centering Abstract}
 
 In the last recent years streaming services such as Netflix, Youtube, Amazon
-Prime Video, Hulu and others, have become the main source for video content
+Prime Video, Hulu,and others, have become the main source for video content
 delivery to the public. With the effort of private companies and of the AOM
 consortium \cite{aom}, various coding formats and streaming techinques have
 been refined and have been vastely adopted by the industry.  \emph{Variable
@@ -16,7 +16,7 @@ each media file gets encoded at multiple bitrates, which are then partitioned
 into smaller segments and delivered to the user over HTTP. As of today, Netflix
 makes extensive use of DASH, by encoding each title in their catalogue at
 different quality levels, so that the user is served tailored-size content
-depending on network conditions, and its device capabilities
+depending on network conditions and device capabilities
 \cite{per-title-encoding}.
 
 DASH and \emph{variable-bitrate-encoding}, have proven to be leaking
@@ -35,4 +35,9 @@ integrating into their enconding and streaming algorithms. Moreover our intent
 is focused on finding out if, by analyzing coarse-grained traffic data, we are
 able to identify a video based on its \emph{bitrate-ladder}.
 
-\todo{refine it and add results}
+We have built a system capable of recording HTTPS encrypted Netflix
+video-stream traffic, at various enforced bandwidths and to build a database of
+100 titles. We have re-interpreted the identification process of
+\cite{netflix-real-time} to be able to extract unique fingerprints based on the
+average observed bitrate. Our system is eventually able to successfully
+identify 4 minutes long traffic captures, with 86\% of accuracy. 
